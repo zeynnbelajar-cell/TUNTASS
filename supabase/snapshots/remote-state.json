@@ -1,0 +1,415 @@
+{
+  "captured_at": "2026-11-14",
+  "project": {
+    "ref": "ssvhrnqtibmsiqlxrwss",
+    "name": "TUNTAS Project",
+    "region": "ap-southeast-2",
+    "status": "ACTIVE_HEALTHY",
+    "database_engine": "PostgreSQL 17"
+  },
+  "migrations": [
+    {
+      "version": "20261112125211",
+      "name": "volunteer_workflow"
+    },
+    {
+      "version": "20261112125426",
+      "name": "volunteer_workflow_hardening"
+    },
+    {
+      "version": "20261112125457",
+      "name": "volunteer_profile_upsert_privileges"
+    },
+    {
+      "version": "20261112125532",
+      "name": "volunteer_workflow_policy_consolidation"
+    },
+    {
+      "version": "20261112125947",
+      "name": "volunteer_profile_column_grants"
+    },
+    {
+      "version": "20261112131920",
+      "name": "citizen_report_attachments"
+    },
+    {
+      "version": "20261112131953",
+      "name": "citizen_attachment_upload_limits"
+    },
+    {
+      "version": "20261112132332",
+      "name": "complaint_attachment_upload_tickets"
+    },
+    {
+      "version": "20261112132543",
+      "name": "move_complaint_upload_tickets_to_protected_public_schema"
+    },
+    {
+      "version": "20261112132619",
+      "name": "complaint_attachment_ticket_policy_cleanup"
+    },
+    {
+      "version": "20261112132835",
+      "name": "citizen_attachment_signed_upload_window"
+    },
+    {
+      "version": "20261112132912",
+      "name": "citizen_attachment_ticket_retention"
+    },
+    {
+      "version": "20261112133837",
+      "name": "citizen_attachment_ten_files_unrestricted_bucket_size"
+    },
+    {
+      "version": "20261112134923",
+      "name": "citizen_attachment_upload_ticket_24h"
+    },
+    {
+      "version": "20261113081217",
+      "name": "issue_category_taxonomy_and_dynamic_deduplication"
+    },
+    {
+      "version": "20261113081233",
+      "name": "citizen_attachment_upload_idempotency"
+    },
+    {
+      "version": "20261113081701",
+      "name": "issue_category_access_and_unknown_fallback"
+    },
+    {
+      "version": "20261113083646",
+      "name": "secure_citizen_attachment_tus_upload_policy"
+    },
+    {
+      "version": "20261113135222",
+      "name": "allow_ai_defined_report_labels"
+    }
+  ],
+  "public_tables": [
+    {
+      "name": "public.reports",
+      "rls_enabled": true,
+      "rows": 11
+    },
+    {
+      "name": "public.report_complaints",
+      "rls_enabled": true,
+      "rows": 18
+    },
+    {
+      "name": "public.volunteer_profiles",
+      "rls_enabled": true,
+      "rows": 0
+    },
+    {
+      "name": "public.report_assignments",
+      "rls_enabled": true,
+      "rows": 0
+    },
+    {
+      "name": "public.report_evidence",
+      "rls_enabled": true,
+      "rows": 0
+    },
+    {
+      "name": "public.complaint_attachments",
+      "rls_enabled": true,
+      "rows": 12
+    },
+    {
+      "name": "public.complaint_attachment_upload_tickets",
+      "rls_enabled": true,
+      "rows": 7
+    },
+    {
+      "name": "public.issue_categories",
+      "rls_enabled": true,
+      "rows": 17
+    }
+  ],
+  "edge_functions": [
+    {
+      "slug": "analyze-report",
+      "version": 10,
+      "verify_jwt": false,
+      "env": [
+        "SUPABASE_ANON_KEY",
+        "SUPABASE_PUBLISHABLE_KEYS",
+        "SUPABASE_URL",
+        "GEMINI_API_KEY",
+        "GEOAPIFY_API_KEY"
+      ]
+    },
+    {
+      "slug": "manage-complaint-attachment",
+      "version": 11,
+      "verify_jwt": false,
+      "env": [
+        "SUPABASE_URL",
+        "SUPABASE_SECRET_KEYS",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY",
+        "SUPABASE_PUBLISHABLE_KEYS"
+      ]
+    }
+  ],
+  "storage_buckets": [
+    {
+      "id": "citizen-report-attachments",
+      "name": "citizen-report-attachments",
+      "public": false,
+      "file_size_limit": null,
+      "allowed_mime_types": [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/gif",
+        "image/avif",
+        "image/heic",
+        "image/heif",
+        "video/mp4",
+        "video/webm",
+        "video/quicktime",
+        "video/mpeg",
+        "video/ogg",
+        "audio/mpeg",
+        "audio/mp4",
+        "audio/wav",
+        "audio/ogg",
+        "audio/webm",
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "application/zip",
+        "application/x-zip-compressed",
+        "application/octet-stream",
+        "text/plain",
+        "text/csv",
+        "text/rtf"
+      ]
+    },
+    {
+      "id": "report-evidence-private",
+      "name": "report-evidence-private",
+      "public": false,
+      "file_size_limit": 5242880,
+      "allowed_mime_types": [
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+      ]
+    }
+  ],
+  "public_rls_policies": [
+    {
+      "schemaname": "public",
+      "tablename": "complaint_attachment_upload_tickets",
+      "policyname": "complaint_attachment_upload_tickets_service_role",
+      "permissive": "PERMISSIVE",
+      "roles": "{service_role}",
+      "cmd": "ALL",
+      "qual": "true",
+      "with_check": "true"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "complaint_attachments",
+      "policyname": "complaint_attachments_public_read",
+      "permissive": "PERMISSIVE",
+      "roles": "{anon,authenticated}",
+      "cmd": "SELECT",
+      "qual": "(status = 'uploaded'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "issue_categories",
+      "policyname": "issue_categories_admin_delete",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "DELETE",
+      "qual": "is_tuntas_admin()",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "issue_categories",
+      "policyname": "issue_categories_admin_insert",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "is_tuntas_admin()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "issue_categories",
+      "policyname": "issue_categories_admin_update",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE",
+      "qual": "is_tuntas_admin()",
+      "with_check": "is_tuntas_admin()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "issue_categories",
+      "policyname": "issue_categories_authenticated_read",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(is_active OR is_tuntas_admin())",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "issue_categories",
+      "policyname": "issue_categories_public_read",
+      "permissive": "PERMISSIVE",
+      "roles": "{anon}",
+      "cmd": "SELECT",
+      "qual": "is_active",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "report_assignments",
+      "policyname": "report_assignments_insert_owner",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "((volunteer_id = ( SELECT auth.uid() AS uid)) AND (status = 'claimed'::text) AND (EXISTS ( SELECT 1\n   FROM volunteer_profiles p\n  WHERE (p.user_id = ( SELECT auth.uid() AS uid)))) AND (EXISTS ( SELECT 1\n   FROM reports r\n  WHERE ((r.id = report_assignments.report_id) AND (lower(btrim(COALESCE(r.status, ''::text))) = ANY (ARRAY['baru'::text, 'perlu perbaikan'::text]))))))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "report_assignments",
+      "policyname": "report_assignments_select_owner_or_admin",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "((volunteer_id = ( SELECT auth.uid() AS uid)) OR is_tuntas_admin())",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "report_assignments",
+      "policyname": "report_assignments_update_workflow",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE",
+      "qual": "(((volunteer_id = ( SELECT auth.uid() AS uid)) AND (status = 'claimed'::text)) OR (is_tuntas_admin() AND (status = 'proof_submitted'::text)))",
+      "with_check": "(((volunteer_id = ( SELECT auth.uid() AS uid)) AND (status = ANY (ARRAY['cancelled'::text, 'proof_submitted'::text])) AND (((status = 'cancelled'::text) AND (NOT (EXISTS ( SELECT 1\n   FROM report_evidence e\n  WHERE (e.assignment_id = report_assignments.id))))) OR ((status = 'proof_submitted'::text) AND (submitted_at IS NOT NULL) AND ((( SELECT count(*) AS count\n   FROM report_evidence e\n  WHERE (e.assignment_id = report_assignments.id)) >= 1) AND (( SELECT count(*) AS count\n   FROM report_evidence e\n  WHERE (e.assignment_id = report_assignments.id)) <= 3))))) OR (is_tuntas_admin() AND (status = ANY (ARRAY['verified'::text, 'rejected'::text])) AND (reviewer_id = ( SELECT auth.uid() AS uid)) AND ((status <> 'rejected'::text) OR (char_length(btrim(COALESCE(review_note, ''::text))) >= 5))))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "report_complaints",
+      "policyname": "Public can submit complaints",
+      "permissive": "PERMISSIVE",
+      "roles": "{anon,authenticated}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "true"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "report_complaints",
+      "policyname": "Public can view complaints",
+      "permissive": "PERMISSIVE",
+      "roles": "{anon,authenticated}",
+      "cmd": "SELECT",
+      "qual": "true",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "report_evidence",
+      "policyname": "report_evidence_insert_owner",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "((volunteer_id = ( SELECT auth.uid() AS uid)) AND (storage_path ~ (('^[0-9a-fA-F-]{36}/'::text || (( SELECT auth.uid() AS uid))::text) || '/[A-Za-z0-9._-]{1,180}$'::text)) AND (EXISTS ( SELECT 1\n   FROM report_assignments a\n  WHERE ((a.id = report_evidence.assignment_id) AND (a.volunteer_id = ( SELECT auth.uid() AS uid)) AND (a.status = 'claimed'::text)))) AND (EXISTS ( SELECT 1\n   FROM storage.objects o\n  WHERE ((o.bucket_id = 'report-evidence-private'::text) AND (o.name = report_evidence.storage_path)))))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "report_evidence",
+      "policyname": "report_evidence_select_owner_or_admin",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "((volunteer_id = ( SELECT auth.uid() AS uid)) OR is_tuntas_admin())",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reports",
+      "policyname": "Public can submit reports",
+      "permissive": "PERMISSIVE",
+      "roles": "{anon,authenticated}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "true"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reports",
+      "policyname": "Public can view reports",
+      "permissive": "PERMISSIVE",
+      "roles": "{anon,authenticated}",
+      "cmd": "SELECT",
+      "qual": "true",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "reports",
+      "policyname": "reports_update_workflow",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE",
+      "qual": "(((status = ANY (ARRAY['Baru'::text, 'Perlu Perbaikan'::text])) AND (EXISTS ( SELECT 1\n   FROM report_assignments a\n  WHERE ((a.report_id = reports.id) AND (a.volunteer_id = ( SELECT auth.uid() AS uid)) AND (a.status = 'claimed'::text))))) OR ((status = 'Dikerjakan'::text) AND (EXISTS ( SELECT 1\n   FROM report_assignments a\n  WHERE ((a.report_id = reports.id) AND (a.volunteer_id = ( SELECT auth.uid() AS uid)) AND (a.status = ANY (ARRAY['cancelled'::text, 'proof_submitted'::text])))))) OR (is_tuntas_admin() AND (status = 'Menunggu Verifikasi'::text) AND (EXISTS ( SELECT 1\n   FROM report_assignments a\n  WHERE ((a.report_id = reports.id) AND (a.status = ANY (ARRAY['verified'::text, 'rejected'::text])) AND (a.reviewer_id = ( SELECT auth.uid() AS uid)))))))",
+      "with_check": "(((status = 'Dikerjakan'::text) AND (EXISTS ( SELECT 1\n   FROM report_assignments a\n  WHERE ((a.report_id = reports.id) AND (a.volunteer_id = ( SELECT auth.uid() AS uid)) AND (a.status = 'claimed'::text))))) OR ((status = 'Baru'::text) AND (EXISTS ( SELECT 1\n   FROM report_assignments a\n  WHERE ((a.report_id = reports.id) AND (a.volunteer_id = ( SELECT auth.uid() AS uid)) AND (a.status = 'cancelled'::text))))) OR ((status = 'Menunggu Verifikasi'::text) AND (EXISTS ( SELECT 1\n   FROM report_assignments a\n  WHERE ((a.report_id = reports.id) AND (a.volunteer_id = ( SELECT auth.uid() AS uid)) AND (a.status = 'proof_submitted'::text)))) AND (EXISTS ( SELECT 1\n   FROM (report_assignments a\n     JOIN report_evidence e ON ((e.assignment_id = a.id)))\n  WHERE ((a.report_id = reports.id) AND (a.volunteer_id = ( SELECT auth.uid() AS uid)) AND (a.status = 'proof_submitted'::text))))) OR (is_tuntas_admin() AND (status = ANY (ARRAY['Selesai'::text, 'Perlu Perbaikan'::text])) AND (EXISTS ( SELECT 1\n   FROM report_assignments a\n  WHERE ((a.report_id = reports.id) AND (a.status = ANY (ARRAY['verified'::text, 'rejected'::text])) AND (a.reviewer_id = ( SELECT auth.uid() AS uid)))))))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "volunteer_profiles",
+      "policyname": "volunteer_profiles_insert_owner",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "(user_id = ( SELECT auth.uid() AS uid))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "volunteer_profiles",
+      "policyname": "volunteer_profiles_select_owner_or_admin",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "((user_id = ( SELECT auth.uid() AS uid)) OR is_tuntas_admin())",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "volunteer_profiles",
+      "policyname": "volunteer_profiles_update_owner",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE",
+      "qual": "(user_id = ( SELECT auth.uid() AS uid))",
+      "with_check": "(user_id = ( SELECT auth.uid() AS uid))"
+    }
+  ],
+  "notes": [
+    "This snapshot was read from the existing hosted Supabase project; it is not a substitute for the complete SQL migration source.",
+    "Edge Function source files are restored under supabase/functions/.",
+    "Secret values are not exported. Only names detected in Edge Function source are listed.",
+    "The active report-submission RPC is SECURITY DEFINER and executable by anon and authenticated. Supabase Security Advisor warns about this; it was left unchanged pending deliberate access/security review."
+  ]
+}

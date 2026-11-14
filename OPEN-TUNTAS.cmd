@@ -1,0 +1,11 @@
+@echo off
+cd /d "%~dp0"
+code "%~dp0"
+start "" "https://supabase.com/dashboard/project/ssvhrnqtibmsiqlxrwss"
+start "" "https://supabase.com/dashboard/project/ssvhrnqtibmsiqlxrwss/settings/api-keys"
+start "" "https://supabase.com/dashboard/project/ssvhrnqtibmsiqlxrwss/functions"
+start "" "https://supabase.com/dashboard/project/ssvhrnqtibmsiqlxrwss/functions/secrets"
+start "" "https://supabase.com/dashboard/account/tokens"
+start "" "https://us.posthog.com/project/730764"
+start "" "https://aistudio.google.com/apikey"
+start "" "https://myprojects.geoapify.com/"

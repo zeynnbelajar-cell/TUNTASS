@@ -1,0 +1,442 @@
+import React, { useEffect, useRef, useState } from "react";
+import { LocateFixed, MapPin, Search, LoaderCircle } from "lucide-react";
+
+const GEOAPIFY_KEY = String(import.meta.env.VITE_GEOAPIFY_API_KEY || "").trim();
+const DEFAULT_CENTER = [-2.5, 118];
+const LEAFLET_SCRIPT = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+
+let leafletPromise;
+
+function loadLeaflet() {
+  if (window.L) return Promise.resolve(window.L);
+  if (leafletPromise) return leafletPromise;
+
+  leafletPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = LEAFLET_SCRIPT;
+    script.async = true;
+    script.dataset.leaflet = "true";
+    script.onload = () => resolve(window.L);
+    script.onerror = () => {
+      leafletPromise = null;
+      reject(new Error("Peta gagal dimuat. Periksa koneksi internet."));
+    };
+    document.head.appendChild(script);
+  });
+
+  return leafletPromise;
+}
+
+function validCoordinates(value) {
+  return (
+    value &&
+    Number.isFinite(value.latitude) &&
+    Number.isFinite(value.longitude) &&
+    value.latitude >= -90 &&
+    value.latitude <= 90 &&
+    value.longitude >= -180 &&
+    value.longitude <= 180
+  );
+}
+
+function normalizedResult(result) {
+  const latitude = Number(result?.lat);
+  const longitude = Number(result?.lon);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+
+  return {
+    label: String(result.formatted || result.address_line1 || result.name || "Lokasi terpilih"),
+    details: [result.city || result.county, result.state, result.country]
+      .filter(Boolean)
+      .join(", "),
+    latitude,
+    longitude,
+    resultType: result.result_type || "",
+  };
+}
+
+export default function LocationPicker({
+  location,
+  coordinates,
+  onLocationChange,
+  onCoordinatesChange,
+  onSourceChange,
+  onResolvingChange,
+  onError,
+  disabled = false,
+}) {
+  const [searchText, setSearchText] = useState(location || "");
+  const [suggestions, setSuggestions] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [searchRevision, setSearchRevision] = useState(0);
+  const [locating, setLocating] = useState(false);
+  const [resolvingAddress, setResolvingAddress] = useState(false);
+  const [mapError, setMapError] = useState("");
+  const [searchMessage, setSearchMessage] = useState("");
+  const mapElementRef = useRef(null);
+  const mapRef = useRef(null);
+  const markerRef = useRef(null);
+  const selectedTextRef = useRef("");
+  const callbacksRef = useRef({});
+  const coordinatesRef = useRef(coordinates);
+  const reverseControllerRef = useRef(null);
+  coordinatesRef.current = coordinates;
+
+  callbacksRef.current = {
+    onLocationChange,
+    onCoordinatesChange,
+    onSourceChange,
+    onResolvingChange,
+    onError,
+  };
+
+  useEffect(() => {
+    setSearchText(location || "");
+  }, [location]);
+
+  useEffect(() => {
+    callbacksRef.current.onResolvingChange?.(resolvingAddress || locating);
+  }, [resolvingAddress, locating]);
+
+  useEffect(() => {
+    if (!GEOAPIFY_KEY || !mapElementRef.current) return undefined;
+
+    let disposed = false;
+    let map;
+
+    loadLeaflet()
+      .then((L) => {
+        if (disposed || !mapElementRef.current) return;
+
+        const initialCoordinates = coordinatesRef.current;
+        const initialCenter = validCoordinates(initialCoordinates)
+          ? [initialCoordinates.latitude, initialCoordinates.longitude]
+          : DEFAULT_CENTER;
+        map = L.map(mapElementRef.current, {
+          center: initialCenter,
+          zoom: validCoordinates(initialCoordinates) ? 16 : 5,
+          scrollWheelZoom: false,
+          preferCanvas: true,
+        });
+
+        const tileUrl = `https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=${encodeURIComponent(GEOAPIFY_KEY)}`;
+        const tileLayer = L.tileLayer(tileUrl, {
+          maxZoom: 20,
+          attribution:
+            'Powered by <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer">Geoapify</a> | <a href="https://openmaptiles.org/" target="_blank" rel="noreferrer">© OpenMapTiles</a> | <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a>',
+        }).addTo(map);
+        tileLayer.on("tileerror", () => {
+          setMapError("Peta gagal menampilkan area ini. Periksa batasan API key dan kuota layanan peta.");
+        });
+
+        if (validCoordinates(initialCoordinates)) {
+          markerRef.current = L.circleMarker(initialCenter, {
+            radius: 9,
+            color: "#ffffff",
+            weight: 3,
+            fillColor: "#087b5a",
+            fillOpacity: 1,
+          }).addTo(map);
+        }
+
+        map.on("click", (event) => {
+          const point = {
+            latitude: Number(event.latlng.lat.toFixed(6)),
+            longitude: Number(event.latlng.lng.toFixed(6)),
+          };
+          callbacksRef.current.onCoordinatesChange?.(point);
+          callbacksRef.current.onSourceChange?.("map_pin");
+          callbacksRef.current.onLocationChange?.("");
+          setSearchText("");
+          selectedTextRef.current = "";
+          setSuggestions([]);
+          resolveAddress(point, "map_pin");
+        });
+
+        mapRef.current = map;
+        window.requestAnimationFrame(() => map?.invalidateSize());
+      })
+      .catch((error) => {
+        if (!disposed) setMapError(error.message || "Peta gagal dimuat.");
+      });
+
+    return () => {
+      disposed = true;
+      reverseControllerRef.current?.abort();
+      map?.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+    };
+    // The map instance is intentionally created once; coordinates are synchronized below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !window.L) return;
+
+    if (!validCoordinates(coordinates)) {
+      if (markerRef.current) {
+        markerRef.current.remove();
+        markerRef.current = null;
+      }
+      return;
+    }
+
+    const point = [coordinates.latitude, coordinates.longitude];
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      map.setView(point, Math.max(map.getZoom(), 16));
+    } else {
+      map.flyTo(point, Math.max(map.getZoom(), 16), { duration: 0.5 });
+    }
+    if (markerRef.current) {
+      markerRef.current.setLatLng(point);
+    } else {
+      markerRef.current = window.L.circleMarker(point, {
+        radius: 9,
+        color: "#ffffff",
+        weight: 3,
+        fillColor: "#087b5a",
+        fillOpacity: 1,
+      }).addTo(map);
+    }
+  }, [coordinates]);
+
+  async function resolveAddress(point, source) {
+    if (!validCoordinates(point) || !GEOAPIFY_KEY) {
+      setSearchMessage("Titik tersimpan. Isi alamat secara manual untuk melengkapinya.");
+      return;
+    }
+
+    reverseControllerRef.current?.abort();
+    const controller = new AbortController();
+    reverseControllerRef.current = controller;
+    setResolvingAddress(true);
+    setSearchMessage("Mencari alamat dari titik peta...");
+
+    try {
+      const params = new URLSearchParams({
+        lat: String(point.latitude),
+        lon: String(point.longitude),
+        format: "json",
+        lang: "id",
+        limit: "1",
+        apiKey: GEOAPIFY_KEY,
+      });
+      const response = await fetch(
+        `https://api.geoapify.com/v1/geocode/reverse?${params}`,
+        { signal: controller.signal }
+      );
+      if (!response.ok) throw new Error("Alamat belum berhasil ditemukan dari peta.");
+
+      const payload = await response.json();
+      const result = normalizedResult(payload?.results?.[0]);
+      if (!result) throw new Error("Tidak ada alamat yang cocok untuk titik ini.");
+
+      selectedTextRef.current = result.label;
+      setSearchText(result.label);
+      callbacksRef.current.onLocationChange?.(result.label);
+      callbacksRef.current.onCoordinatesChange?.(point);
+      callbacksRef.current.onSourceChange?.(source);
+      setSearchMessage(result.details ? `Lokasi terdeteksi · ${result.details}` : "Alamat ditemukan dari peta.");
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        setSearchMessage(error.message || "Alamat gagal ditemukan. Isi alamat secara manual.");
+      }
+    } finally {
+      if (!controller.signal.aborted) setResolvingAddress(false);
+    }
+  }
+
+  useEffect(() => {
+    const query = searchText.trim();
+    if (!GEOAPIFY_KEY || query.length < 3 || query === selectedTextRef.current) {
+      setSuggestions([]);
+      setSearching(false);
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setSearching(true);
+      setSearchMessage("");
+      try {
+        const params = new URLSearchParams({
+          text: query,
+          filter: "countrycode:id",
+          lang: "id",
+          format: "json",
+          limit: "5",
+          apiKey: GEOAPIFY_KEY,
+        });
+        const response = await fetch(
+          `https://api.geoapify.com/v1/geocode/autocomplete?${params}`,
+          { signal: controller.signal }
+        );
+        if (!response.ok) throw new Error("Pencarian alamat gagal. Coba lagi.");
+        const payload = await response.json();
+        const results = (payload?.results || []).map(normalizedResult).filter(Boolean);
+        setSuggestions(results);
+        setSearchMessage(results.length ? "" : "Lokasi belum ditemukan. Coba nama jalan atau kelurahan.");
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          setSuggestions([]);
+          setSearchMessage(error.message || "Pencarian alamat gagal.");
+        }
+      } finally {
+        if (!controller.signal.aborted) setSearching(false);
+      }
+    }, 350);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [searchText, searchRevision]);
+
+  function handleSearchChange(event) {
+    const nextValue = event.target.value;
+    selectedTextRef.current = "";
+    setSearchText(nextValue);
+    setSuggestions([]);
+    setSearchMessage("");
+    callbacksRef.current.onError?.("");
+    callbacksRef.current.onLocationChange?.(nextValue);
+    callbacksRef.current.onCoordinatesChange?.(null);
+    callbacksRef.current.onSourceChange?.("manual");
+  }
+
+  function chooseSuggestion(suggestion) {
+    selectedTextRef.current = suggestion.label;
+    setSearchText(suggestion.label);
+    setSuggestions([]);
+    setSearchMessage(suggestion.details ? `Lokasi ditemukan · ${suggestion.details}` : "Lokasi ditemukan dari peta.");
+    const point = {
+      latitude: suggestion.latitude,
+      longitude: suggestion.longitude,
+    };
+    callbacksRef.current.onLocationChange?.(suggestion.label);
+    callbacksRef.current.onCoordinatesChange?.(point);
+    callbacksRef.current.onSourceChange?.("search");
+  }
+
+  function useGps() {
+    callbacksRef.current.onError?.("");
+    if (!navigator.geolocation) {
+      callbacksRef.current.onError?.("Browser ini tidak mendukung GPS.");
+      return;
+    }
+
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const point = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+        callbacksRef.current.onCoordinatesChange?.(point);
+        callbacksRef.current.onLocationChange?.("");
+        callbacksRef.current.onSourceChange?.("gps");
+        selectedTextRef.current = "";
+        setSearchText("");
+        setSuggestions([]);
+        resolveAddress(point, "gps");
+        setLocating(false);
+      },
+      (geoError) => {
+        const message = geoError.code === 1
+          ? "Izin lokasi ditolak. Cari alamat atau pilih titik peta secara manual."
+          : geoError.code === 2
+            ? "Lokasi perangkat tidak berhasil ditemukan. Coba lagi atau pilih peta."
+            : "GPS terlalu lama merespons. Coba lagi atau pilih titik di peta.";
+        callbacksRef.current.onError?.(message);
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
+    );
+  }
+
+  return (
+    <div className="location-picker">
+      <div className="location-search-wrap">
+        <div className="location-search-input">
+          <Search size={16} aria-hidden="true" />
+          <input
+            id="location"
+            value={searchText}
+            onChange={handleSearchChange}
+            onFocus={() => {
+              if (searchText.trim().length >= 3 && searchText !== selectedTextRef.current) {
+                setSearchRevision((revision) => revision + 1);
+              }
+            }}
+            onBlur={() => window.setTimeout(() => setSuggestions([]), 150)}
+            placeholder="Cari alamat, jalan, kelurahan, atau tempat..."
+            maxLength={200}
+            autoComplete="off"
+            required
+            disabled={disabled}
+            aria-autocomplete="list"
+            aria-controls="location-suggestions"
+          />
+          {searching && <LoaderCircle className="spin-icon" size={16} aria-label="Mencari" />}
+        </div>
+        {suggestions.length > 0 && (
+          <div className="location-suggestions" id="location-suggestions" role="listbox">
+            {suggestions.map((suggestion, index) => (
+              <button
+                type="button"
+                className="location-suggestion"
+                key={`${suggestion.latitude}:${suggestion.longitude}:${index}`}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => chooseSuggestion(suggestion)}
+                disabled={disabled}
+                role="option"
+                aria-selected="false"
+              >
+                <MapPin size={15} />
+                <span>
+                  <strong>{suggestion.label}</strong>
+                  {suggestion.details && <small>{suggestion.details}</small>}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="location-actions">
+        <button
+          className="location-button"
+          type="button"
+          onClick={useGps}
+          disabled={disabled || locating || resolvingAddress}
+        >
+          <LocateFixed size={15} />
+          {locating ? "Mencari GPS..." : "Gunakan lokasi saya"}
+        </button>
+        {validCoordinates(coordinates) && (
+          <span className="coordinate-badge">{coordinates.latitude.toFixed(5)}, {coordinates.longitude.toFixed(5)}</span>
+        )}
+      </div>
+
+      {GEOAPIFY_KEY ? (
+        <div className="location-map-frame">
+          <div ref={mapElementRef} className="location-map" aria-label="Peta untuk memilih titik laporan" />
+          <div className="map-instruction"><MapPin size={13} /> Ketuk peta untuk menentukan titik laporan</div>
+        </div>
+      ) : (
+        <div className="map-unavailable" role="status">
+          <MapPin size={18} />
+          <span>Peta interaktif belum aktif. Lengkapi kunci layanan peta untuk mencari alamat dan memilih titik langsung dari peta.</span>
+        </div>
+      )}
+
+      {mapError && <p className="location-status location-status-error" role="alert">{mapError}</p>}
+      {searchMessage && <p className="location-status" role="status">{resolvingAddress ? <LoaderCircle className="spin-icon" size={13} /> : <MapPin size={13} />}{searchMessage}</p>}
+      {!searchMessage && validCoordinates(coordinates) && (
+        <p className="location-status"><MapPin size={13} />Titik koordinat siap digunakan untuk mencari keluhan serupa dalam radius 50 meter.</p>
+      )}
+    </div>
+  );
+}

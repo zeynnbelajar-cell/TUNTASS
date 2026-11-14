@@ -1,0 +1,13 @@
+{
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true
+  },
+  "deno.path": "./tools/deno/deno.exe",
+  "deno.enablePaths": [
+    "./supabase/functions"
+  ],
+  "deno.lint": true
+}

@@ -1,0 +1,910 @@
+{
+  "project_ref": "ssvhrnqtibmsiqlxrwss",
+  "captured_at": "2026-11-14",
+  "tables": [
+    {
+      "name": "public.reports",
+      "rls_enabled": true,
+      "rows": 11,
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "gen_random_uuid()"
+        },
+        {
+          "name": "location",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "updatable"
+          ]
+        },
+        {
+          "name": "description",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "updatable"
+          ]
+        },
+        {
+          "name": "category",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "nullable",
+            "updatable"
+          ],
+          "default_value": "'Belum dikategorikan'::text"
+        },
+        {
+          "name": "priority",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "nullable",
+            "updatable"
+          ],
+          "default_value": "'Belum ditentukan'::text"
+        },
+        {
+          "name": "summary",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "nullable",
+            "updatable"
+          ]
+        },
+        {
+          "name": "recommendation",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "nullable",
+            "updatable"
+          ]
+        },
+        {
+          "name": "status",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "nullable",
+            "updatable"
+          ],
+          "default_value": "'Baru'::text"
+        },
+        {
+          "name": "created_at",
+          "data_type": "timestamp with time zone",
+          "format": "timestamptz",
+          "options": [
+            "nullable",
+            "updatable"
+          ],
+          "default_value": "now()"
+        },
+        {
+          "name": "latitude",
+          "data_type": "double precision",
+          "format": "float8",
+          "options": [
+            "nullable",
+            "updatable"
+          ]
+        },
+        {
+          "name": "longitude",
+          "data_type": "double precision",
+          "format": "float8",
+          "options": [
+            "nullable",
+            "updatable"
+          ]
+        },
+        {
+          "name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "format": "timestamptz",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "now()"
+        },
+        {
+          "name": "updated_by",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "nullable",
+            "updatable"
+          ]
+        }
+      ],
+      "primary_keys": [
+        "id"
+      ],
+      "foreign_key_constraints": [
+        {
+          "name": "report_assignments_report_id_fkey",
+          "source_table": "public.report_assignments",
+          "source_columns": [
+            "report_id"
+          ],
+          "target_table": "public.reports",
+          "target_columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "report_complaints_report_id_fkey",
+          "source_table": "public.report_complaints",
+          "source_columns": [
+            "report_id"
+          ],
+          "target_table": "public.reports",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "public.report_complaints",
+      "rls_enabled": true,
+      "rows": 18,
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "gen_random_uuid()"
+        },
+        {
+          "name": "report_id",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "updatable"
+          ]
+        },
+        {
+          "name": "description",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "updatable"
+          ]
+        },
+        {
+          "name": "location",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "updatable"
+          ]
+        },
+        {
+          "name": "latitude",
+          "data_type": "double precision",
+          "format": "float8",
+          "options": [
+            "nullable",
+            "updatable"
+          ],
+          "check": "latitude IS NULL OR latitude >= '-90'::integer::double precision AND latitude <= 90::double precision"
+        },
+        {
+          "name": "longitude",
+          "data_type": "double precision",
+          "format": "float8",
+          "options": [
+            "nullable",
+            "updatable"
+          ],
+          "check": "longitude IS NULL OR longitude >= '-180'::integer::double precision AND longitude <= 180::double precision"
+        },
+        {
+          "name": "category",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "nullable",
+            "updatable"
+          ]
+        },
+        {
+          "name": "priority",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "nullable",
+            "updatable"
+          ]
+        },
+        {
+          "name": "summary",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "nullable",
+            "updatable"
+          ]
+        },
+        {
+          "name": "recommendation",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "nullable",
+            "updatable"
+          ]
+        },
+        {
+          "name": "is_initial",
+          "data_type": "boolean",
+          "format": "bool",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "false"
+        },
+        {
+          "name": "created_at",
+          "data_type": "timestamp with time zone",
+          "format": "timestamptz",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "now()"
+        }
+      ],
+      "primary_keys": [
+        "id"
+      ],
+      "foreign_key_constraints": [
+        {
+          "name": "complaint_attachments_complaint_id_fkey",
+          "source_table": "public.complaint_attachments",
+          "source_columns": [
+            "complaint_id"
+          ],
+          "target_table": "public.report_complaints",
+          "target_columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "complaint_attachment_upload_tickets_complaint_id_fkey",
+          "source_table": "public.complaint_attachment_upload_tickets",
+          "source_columns": [
+            "complaint_id"
+          ],
+          "target_table": "public.report_complaints",
+          "target_columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "report_complaints_report_id_fkey",
+          "source_table": "public.report_complaints",
+          "source_columns": [
+            "report_id"
+          ],
+          "target_table": "public.reports",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "public.volunteer_profiles",
+      "rls_enabled": true,
+      "rows": 0,
+      "columns": [
+        {
+          "name": "user_id",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "updatable"
+          ]
+        },
+        {
+          "name": "full_name",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "updatable"
+          ],
+          "check": "char_length(btrim(full_name)) >= 2 AND char_length(btrim(full_name)) <= 80"
+        },
+        {
+          "name": "phone",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "nullable",
+            "updatable"
+          ],
+          "check": "phone IS NULL OR char_length(phone) <= 30"
+        },
+        {
+          "name": "created_at",
+          "data_type": "timestamp with time zone",
+          "format": "timestamptz",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "now()"
+        },
+        {
+          "name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "format": "timestamptz",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "now()"
+        }
+      ],
+      "primary_keys": [
+        "user_id"
+      ],
+      "foreign_key_constraints": [
+        {
+          "name": "volunteer_profiles_user_id_fkey",
+          "source_table": "public.volunteer_profiles",
+          "source_columns": [
+            "user_id"
+          ],
+          "target_table": "auth.users",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "public.report_assignments",
+      "rls_enabled": true,
+      "rows": 0,
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "gen_random_uuid()"
+        },
+        {
+          "name": "report_id",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "updatable"
+          ]
+        },
+        {
+          "name": "volunteer_id",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "updatable"
+          ]
+        },
+        {
+          "name": "status",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "'claimed'::text",
+          "check": "status = ANY (ARRAY['claimed'::text, 'proof_submitted'::text, 'verified'::text, 'rejected'::text, 'cancelled'::text])"
+        },
+        {
+          "name": "claimed_at",
+          "data_type": "timestamp with time zone",
+          "format": "timestamptz",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "now()"
+        },
+        {
+          "name": "submitted_at",
+          "data_type": "timestamp with time zone",
+          "format": "timestamptz",
+          "options": [
+            "nullable",
+            "updatable"
+          ]
+        },
+        {
+          "name": "reviewed_at",
+          "data_type": "timestamp with time zone",
+          "format": "timestamptz",
+          "options": [
+            "nullable",
+            "updatable"
+          ]
+        },
+        {
+          "name": "reviewer_id",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "nullable",
+            "updatable"
+          ]
+        },
+        {
+          "name": "review_note",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "nullable",
+            "updatable"
+          ],
+          "check": "review_note IS NULL OR char_length(review_note) <= 500"
+        },
+        {
+          "name": "created_at",
+          "data_type": "timestamp with time zone",
+          "format": "timestamptz",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "now()"
+        }
+      ],
+      "primary_keys": [
+        "id"
+      ],
+      "foreign_key_constraints": [
+        {
+          "name": "report_assignments_volunteer_id_fkey",
+          "source_table": "public.report_assignments",
+          "source_columns": [
+            "volunteer_id"
+          ],
+          "target_table": "auth.users",
+          "target_columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "report_assignments_reviewer_id_fkey",
+          "source_table": "public.report_assignments",
+          "source_columns": [
+            "reviewer_id"
+          ],
+          "target_table": "auth.users",
+          "target_columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "report_assignments_report_id_fkey",
+          "source_table": "public.report_assignments",
+          "source_columns": [
+            "report_id"
+          ],
+          "target_table": "public.reports",
+          "target_columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "report_evidence_assignment_id_fkey",
+          "source_table": "public.report_evidence",
+          "source_columns": [
+            "assignment_id"
+          ],
+          "target_table": "public.report_assignments",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "public.report_evidence",
+      "rls_enabled": true,
+      "rows": 0,
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "gen_random_uuid()"
+        },
+        {
+          "name": "assignment_id",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "updatable"
+          ]
+        },
+        {
+          "name": "volunteer_id",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "updatable"
+          ]
+        },
+        {
+          "name": "storage_path",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "updatable",
+            "unique"
+          ]
+        },
+        {
+          "name": "note",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "nullable",
+            "updatable"
+          ],
+          "check": "note IS NULL OR char_length(note) <= 500"
+        },
+        {
+          "name": "created_at",
+          "data_type": "timestamp with time zone",
+          "format": "timestamptz",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "now()"
+        }
+      ],
+      "primary_keys": [
+        "id"
+      ],
+      "foreign_key_constraints": [
+        {
+          "name": "report_evidence_volunteer_id_fkey",
+          "source_table": "public.report_evidence",
+          "source_columns": [
+            "volunteer_id"
+          ],
+          "target_table": "auth.users",
+          "target_columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "report_evidence_assignment_id_fkey",
+          "source_table": "public.report_evidence",
+          "source_columns": [
+            "assignment_id"
+          ],
+          "target_table": "public.report_assignments",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "public.complaint_attachments",
+      "rls_enabled": true,
+      "rows": 12,
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "gen_random_uuid()"
+        },
+        {
+          "name": "complaint_id",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "updatable"
+          ]
+        },
+        {
+          "name": "storage_path",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "updatable",
+            "unique"
+          ]
+        },
+        {
+          "name": "file_name",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "updatable"
+          ],
+          "check": "char_length(file_name) >= 1 AND char_length(file_name) <= 160"
+        },
+        {
+          "name": "content_type",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "updatable"
+          ],
+          "check": "content_type = ANY (ARRAY['image/jpeg'::text, 'image/png'::text, 'image/webp'::text, 'image/gif'::text, 'image/avif'::text, 'image/heic'::text, 'image/heif'::text, 'video/mp4'::text, 'video/webm'::text, 'video/quicktime'::text, 'video/mpeg'::text, 'video/ogg'::text, 'audio/mpeg'::text, 'audio/mp4'::text, 'audio/wav'::text, 'audio/ogg'::text, 'audio/webm'::text, 'application/pdf'::text, 'application/msword'::text, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'::text, 'application/vnd.ms-excel'::text, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'::text, 'application/vnd.ms-powerpoint'::text, 'application/vnd.openxmlformats-officedocument.presentationml.presentation'::text, 'application/zip'::text, 'application/x-zip-compressed'::text, 'application/octet-stream'::text, 'text/plain'::text, 'text/csv'::text, 'text/rtf'::text])"
+        },
+        {
+          "name": "size_bytes",
+          "data_type": "bigint",
+          "format": "int8",
+          "options": [
+            "updatable"
+          ]
+        },
+        {
+          "name": "status",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "'pending'::text",
+          "check": "status = ANY (ARRAY['pending'::text, 'uploaded'::text])"
+        },
+        {
+          "name": "created_at",
+          "data_type": "timestamp with time zone",
+          "format": "timestamptz",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "now()"
+        },
+        {
+          "name": "uploaded_at",
+          "data_type": "timestamp with time zone",
+          "format": "timestamptz",
+          "options": [
+            "nullable",
+            "updatable"
+          ]
+        },
+        {
+          "name": "ip_hash",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "nullable",
+            "updatable"
+          ],
+          "check": "ip_hash IS NULL OR ip_hash ~ '^[0-9a-f]{64}$'::text"
+        },
+        {
+          "name": "replacement_for",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "nullable",
+            "updatable"
+          ]
+        },
+        {
+          "name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "format": "timestamptz",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "now()"
+        },
+        {
+          "name": "updated_by",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "nullable",
+            "updatable"
+          ]
+        },
+        {
+          "name": "client_upload_id",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "nullable",
+            "updatable"
+          ]
+        }
+      ],
+      "primary_keys": [
+        "id"
+      ],
+      "foreign_key_constraints": [
+        {
+          "name": "complaint_attachments_complaint_id_fkey",
+          "source_table": "public.complaint_attachments",
+          "source_columns": [
+            "complaint_id"
+          ],
+          "target_table": "public.report_complaints",
+          "target_columns": [
+            "id"
+          ]
+        },
+        {
+          "name": "complaint_attachments_replacement_for_fkey",
+          "source_table": "public.complaint_attachments",
+          "source_columns": [
+            "replacement_for"
+          ],
+          "target_table": "public.complaint_attachments",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "public.complaint_attachment_upload_tickets",
+      "rls_enabled": true,
+      "rows": 7,
+      "columns": [
+        {
+          "name": "complaint_id",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "updatable"
+          ]
+        },
+        {
+          "name": "upload_token",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "updatable"
+          ]
+        },
+        {
+          "name": "expires_at",
+          "data_type": "timestamp with time zone",
+          "format": "timestamptz",
+          "options": [
+            "updatable"
+          ]
+        },
+        {
+          "name": "created_at",
+          "data_type": "timestamp with time zone",
+          "format": "timestamptz",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "now()"
+        }
+      ],
+      "primary_keys": [
+        "complaint_id"
+      ],
+      "foreign_key_constraints": [
+        {
+          "name": "complaint_attachment_upload_tickets_complaint_id_fkey",
+          "source_table": "public.complaint_attachment_upload_tickets",
+          "source_columns": [
+            "complaint_id"
+          ],
+          "target_table": "public.report_complaints",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "public.issue_categories",
+      "rls_enabled": true,
+      "rows": 17,
+      "columns": [
+        {
+          "name": "code",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "updatable"
+          ],
+          "check": "code ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'::text"
+        },
+        {
+          "name": "label",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "updatable"
+          ],
+          "check": "char_length(btrim(label)) >= 2 AND char_length(btrim(label)) <= 80"
+        },
+        {
+          "name": "description",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "updatable"
+          ],
+          "check": "char_length(btrim(description)) >= 5 AND char_length(btrim(description)) <= 300"
+        },
+        {
+          "name": "aliases",
+          "data_type": "ARRAY",
+          "format": "_text",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "ARRAY[]::text[]"
+        },
+        {
+          "name": "is_active",
+          "data_type": "boolean",
+          "format": "bool",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "true"
+        },
+        {
+          "name": "sort_order",
+          "data_type": "smallint",
+          "format": "int2",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "100"
+        },
+        {
+          "name": "created_at",
+          "data_type": "timestamp with time zone",
+          "format": "timestamptz",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "now()"
+        },
+        {
+          "name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "format": "timestamptz",
+          "options": [
+            "updatable"
+          ],
+          "default_value": "now()"
+        }
+      ],
+      "primary_keys": [
+        "code"
+      ]
+    }
+  ]
+}

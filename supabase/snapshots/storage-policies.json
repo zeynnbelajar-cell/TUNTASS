@@ -1,0 +1,73 @@
+{
+  "project_ref": "ssvhrnqtibmsiqlxrwss",
+  "captured_at": "2026-11-14",
+  "source": "pg_policies",
+  "storage_policies": [
+    {
+      "policyname": "citizen_attachment_select_pending_upload",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "cmd": "SELECT",
+      "qual": "bucket_id = 'citizen-report-attachments' AND private.can_upload_citizen_attachment(name)",
+      "with_check": null
+    },
+    {
+      "policyname": "citizen_attachment_update_pending_upload",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "cmd": "UPDATE",
+      "qual": "bucket_id = 'citizen-report-attachments' AND private.can_upload_citizen_attachment(name)",
+      "with_check": "bucket_id = 'citizen-report-attachments' AND private.can_upload_citizen_attachment(name)"
+    },
+    {
+      "policyname": "citizen_attachment_upload_reserved_only",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "bucket_id = 'citizen-report-attachments' AND private.can_upload_citizen_attachment(name)"
+    },
+    {
+      "policyname": "citizen_attachments_admin_read",
+      "roles": [
+        "authenticated"
+      ],
+      "cmd": "SELECT",
+      "qual": "bucket_id = 'citizen-report-attachments' AND is_tuntas_admin()",
+      "with_check": null
+    },
+    {
+      "policyname": "report_evidence_delete_owner_before_submit",
+      "roles": [
+        "authenticated"
+      ],
+      "cmd": "DELETE",
+      "qual": "bucket_id = 'report-evidence-private' AND assignment belongs to auth.uid() and is claimed",
+      "with_check": null
+    },
+    {
+      "policyname": "report_evidence_read_owner_or_admin",
+      "roles": [
+        "authenticated"
+      ],
+      "cmd": "SELECT",
+      "qual": "bucket_id = 'report-evidence-private' AND (is_tuntas_admin() OR assignment belongs to auth.uid())",
+      "with_check": null
+    },
+    {
+      "policyname": "report_evidence_upload_owner",
+      "roles": [
+        "authenticated"
+      ],
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "bucket_id = 'report-evidence-private' AND path owner matches auth.uid() and assignment belongs to auth.uid() and is claimed"
+    }
+  ]
+}
