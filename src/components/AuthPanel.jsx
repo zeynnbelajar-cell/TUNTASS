@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { LogIn, LogOut, UserRound, UserPlus } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
@@ -31,7 +31,7 @@ export default function AuthPanel({ user }) {
         const { data, error: authError } = await supabase.auth.signUp({
           email: email.trim(),
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: new URL(import.meta.env.BASE_URL, window.location.origin).href },
         });
         if (authError) throw authError;
         if (data.session) {
@@ -114,3 +114,4 @@ export default function AuthPanel({ user }) {
     </section>
   );
 }
+
