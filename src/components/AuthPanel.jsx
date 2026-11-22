@@ -1,22 +1,49 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, LogIn, LogOut, UserRound, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
+const AUTH_SLIDE_DURATION_MS = 820;
+
 export default function AuthPanel({ user }) {
   const [open, setOpen] = useState(false);
-  // Start with registration on the right and the red sliding door on the left.
   const [mode, setMode] = useState("register");
+  const [copyMode, setCopyMode] = useState("register");
+  const [isSliding, setIsSliding] = useState(false);
+  const transitionTimer = useRef(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  useEffect(() => () => {
+    if (transitionTimer.current !== null) {
+      window.clearTimeout(transitionTimer.current);
+    }
+  }, []);
+
   function changeMode(nextMode) {
-    if (busy || mode === nextMode) return;
+    if (busy || isSliding || mode === nextMode) return;
+
     setError("");
     setMessage("");
+
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     setMode(nextMode);
+
+    if (reduceMotion) {
+      setCopyMode(nextMode);
+      return;
+    }
+
+    setIsSliding(true);
+    transitionTimer.current = window.setTimeout(() => {
+      setCopyMode(nextMode);
+      transitionTimer.current = window.setTimeout(() => {
+        setIsSliding(false);
+        transitionTimer.current = null;
+      }, AUTH_SLIDE_DURATION_MS / 2);
+    }, AUTH_SLIDE_DURATION_MS / 2);
   }
 
   async function submit(event) {
@@ -88,6 +115,7 @@ export default function AuthPanel({ user }) {
   }
 
   const isLogin = mode === "login";
+  const isCopyLogin = copyMode === "login";
 
   return (
     <section className="auth-entry" aria-label="Akses relawan" data-mask-reveal>
@@ -103,6 +131,7 @@ export default function AuthPanel({ user }) {
           className={`auth-toggle ${open ? "is-open" : ""}`}
           aria-expanded={open}
           aria-controls="tuntas-auth-dropdown"
+          disabled={isSliding}
           onClick={() => {
             setOpen((value) => !value);
             setError("");
@@ -125,27 +154,27 @@ export default function AuthPanel({ user }) {
               <button
                 type="button"
                 className={`auth-visual ${isLogin ? "is-login" : "is-register"}`}
-                aria-label={isLogin ? "Geser panel merah untuk daftar" : "Geser panel merah untuk masuk"}
+                aria-label={isCopyLogin ? "Geser panel merah untuk daftar" : "Geser panel merah untuk masuk"}
                 onClick={() => changeMode(isLogin ? "register" : "login")}
-                disabled={busy}
+                disabled={busy || isSliding}
               >
                 <div className="auth-visual-copy">
-                  <p>{isLogin ? "READY TO MAKE A DIFFERENCE?" : "YOUR COMMUNITY IS WAITING"}</p>
-                  <h3>{isLogin ? "Hello, Friend!" : "Welcome Back!"}</h3>
+                  <p>{isCopyLogin ? "READY TO MAKE A DIFFERENCE?" : "YOUR COMMUNITY IS WAITING"}</p>
+                  <h3>{isCopyLogin ? "Hello, Friend!" : "Welcome Back!"}</h3>
                   <span>
-                    {isLogin
+                    {isCopyLogin
                       ? "Bergabunglah dan mulai perjalanan membuat perubahan bersama."
                       : "Kami senang melihatmu kembali. Masuk untuk melanjutkan aksi baikmu bersama TUNTAS."}
                   </span>
                 </div>
-                <span className="auth-mode-cta">{isLogin ? "Sign Up" : "Sign In"}</span>
+                <span className="auth-mode-cta">{isCopyLogin ? "Sign Up" : "Sign In"}</span>
               </button>
 
               <div className={`auth-form-side ${isLogin ? "is-login" : "is-register"}`}>
                 <div className="auth-form-heading">
-                  <span>{isLogin ? "WELCOME BACK" : "GET STARTED"}</span>
-                  <h3>{isLogin ? "Welcome Back" : "Create Account"}</h3>
-                  <p>{isLogin ? "Masuk untuk melanjutkan kontribusimu." : "Buat akun relawan dan mulai ambil bagian."}</p>
+                  <span>{isCopyLogin ? "WELCOME BACK" : "GET STARTED"}</span>
+                  <h3>{isCopyLogin ? "Welcome Back" : "Create Account"}</h3>
+                  <p>{isCopyLogin ? "Masuk untuk melanjutkan kontribusimu." : "Buat akun relawan dan mulai ambil bagian."}</p>
                 </div>
 
                 <form className="auth-form" onSubmit={submit}>
@@ -157,6 +186,7 @@ export default function AuthPanel({ user }) {
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     placeholder="nama@email.com"
+                    disabled={busy || isSliding}
                     required
                   />
 
@@ -169,14 +199,15 @@ export default function AuthPanel({ user }) {
                     onChange={(event) => setPassword(event.target.value)}
                     minLength={8}
                     placeholder="Minimal 8 karakter"
+                    disabled={busy || isSliding}
                     required
                   />
 
                   {error && <p className="auth-feedback auth-error" role="alert">{error}</p>}
                   {message && <p className="auth-feedback auth-success" role="status">{message}</p>}
 
-                  <button className="auth-submit" disabled={busy}>
-                    {busy ? "Memproses..." : isLogin ? "Masuk ke akun" : "Buat akun relawan"}
+                  <button className="auth-submit" disabled={busy || isSliding}>
+                    {busy ? "Memproses..." : isCopyLogin ? "Masuk ke akun" : "Buat akun relawan"}
                     {!busy && <ArrowUpRight size={16} />}
                   </button>
                   <small className="auth-footnote">
