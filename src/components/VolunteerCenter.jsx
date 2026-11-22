@@ -12,6 +12,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import { isTuntasAdminUser } from "../lib/adminAccess";
 
 const EVIDENCE_BUCKET = "report-evidence-private";
 const REPORT_FIELDS = "id, description, location, category, priority, summary, recommendation, status, created_at, latitude, longitude";
@@ -226,8 +227,8 @@ function AssignmentCard({ assignment, isAdmin, onCancel, onReview, onRefresh }) 
   );
 }
 
-export default function VolunteerCenter({ user }) {
-  const isAdmin = user?.app_metadata?.tuntas_role === "admin";
+export default function VolunteerCenter({ user, onAdminDataChanged }) {
+  const isAdmin = isTuntasAdminUser(user);
   const [profile, setProfile] = useState(null);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -474,6 +475,7 @@ export default function VolunteerCenter({ user }) {
     });
     if (reviewError) throw reviewError;
     await loadData();
+    onAdminDataChanged?.();
   }
 
   const myActiveAssignments = useMemo(
@@ -580,7 +582,7 @@ export default function VolunteerCenter({ user }) {
 
       {isAdmin && (
         <div className="admin-setup-hint">
-          <ShieldCheck size={15} /> Hak admin berasal dari <code>app_metadata.tuntas_role</code>; tidak ada tombol untuk menaikkan hak akses sendiri dari browser.
+          <ShieldCheck size={15} /> Hak admin hanya dimiliki akun pengelola TUNTAS yang telah diverifikasi oleh server.
         </div>
       )}
     </section>

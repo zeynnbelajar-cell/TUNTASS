@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, LogIn, LogOut, UserRound, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import { isTuntasAdminUser, TUNTAS_ADMIN_EMAIL } from "../lib/adminAccess";
 
 const AUTH_SLIDE_DURATION_MS = 820;
 
@@ -21,6 +22,13 @@ export default function AuthPanel({ user }) {
       window.clearTimeout(transitionTimer.current);
     }
   }, []);
+  useEffect(() => {
+    if (!open || busy || isSliding || mode !== "register") return;
+    if (email.trim().toLowerCase() === TUNTAS_ADMIN_EMAIL) {
+      changeMode("login");
+    }
+  }, [email, open, busy, isSliding, mode]);
+
 
   function changeMode(nextMode) {
     if (busy || isSliding || mode === nextMode) return;
@@ -105,7 +113,7 @@ export default function AuthPanel({ user }) {
         <span className="auth-avatar"><UserRound size={16} /></span>
         <span className="auth-account-copy">
           <strong>{user.email}</strong>
-          <small>{user.app_metadata?.tuntas_role === "admin" ? "Admin TUNTAS" : "Akun relawan"}</small>
+          <small>{isTuntasAdminUser(user) ? "Admin TUNTAS" : "Akun relawan"}</small>
         </span>
 
         <button type="button" className="auth-signout" onClick={signOut}>

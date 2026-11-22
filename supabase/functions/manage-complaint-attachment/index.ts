@@ -2,6 +2,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const BUCKET = "citizen-report-attachments";
+const ADMIN_USER_ID = "b6521de4-d0f7-442f-a0cc-89bd26dc9729";
+const ADMIN_EMAIL = "zeynn.belajar@gmail.com";
 const MAX_REQUEST_BYTES = 32 * 1024;
 const VIEW_URL_SECONDS = 3600;
 const ALLOWED_TYPES = new Set([
@@ -90,7 +92,13 @@ async function requireAdmin(req: Request): Promise<{ id: string } | null> {
     auth: { autoRefreshToken: false, persistSession: false },
   });
   const { data, error } = await userClient.auth.getUser(token);
-  if (error || !data.user || data.user.app_metadata?.tuntas_role !== "admin") return null;
+  if (
+    error ||
+    !data.user ||
+    data.user.id !== ADMIN_USER_ID ||
+    typeof data.user.email !== "string" ||
+    data.user.email.trim().toLowerCase() !== ADMIN_EMAIL
+  ) return null;
   return { id: data.user.id };
 }
 

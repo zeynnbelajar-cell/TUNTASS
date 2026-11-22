@@ -19,14 +19,22 @@ import {
 } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "./lib/supabase";
 import { isNetworkUnavailable } from "./lib/networkStatus";
-import LocationPicker from "./components/LocationPicker";
+
 import AuthPanel from "./components/AuthPanel";
 import VolunteerCenter from "./components/VolunteerCenter";
+
+import { isTuntasAdminUser } from "./lib/adminAccess";
+
+const LocationPicker = React.lazy(() => import("./components/LocationPicker"));
+const AdminDashboard = React.lazy(() => import("./components/AdminDashboard"));
 
 const ATTACHMENT_BUCKET = "citizen-report-attachments";
 const ATTACHMENT_LIMIT = 10;
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "";
-const SUPABASE_PUBLIC_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
+const SUPABASE_PUBLIC_KEY =
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  "";
 const STORAGE_TUS_ENDPOINT = SUPABASE_URL
   ? SUPABASE_URL.replace(".supabase.co", ".storage.supabase.co") + "/storage/v1/upload/resumable"
   : "";
@@ -167,7 +175,8 @@ export default function App() {
   const [reportsError, setReportsError] = useState("");
   const [user, setUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
-  const isAdmin = user?.app_metadata?.tuntas_role === "admin";
+  const [adminDashboardOpen, setAdminDashboardOpen] = useState(true);
+  const isAdmin = isTuntasAdminUser(user);
 
   useEffect(() => {
     const previews = attachmentFiles.map((file) => ({
@@ -335,6 +344,10 @@ export default function App() {
   }
 
   const loadReports = useCallback(async () => {
+    if (!authReady || (isAdmin && adminDashboardOpen)) {
+      setReportsLoading(false);
+      return;
+    }
     if (!isSupabaseConfigured || !supabase) {
       setReportsError("Supabase belum dikonfigurasi. Periksa file .env.local.");
       setReportsLoading(false);
@@ -451,7 +464,7 @@ export default function App() {
     }
 
     setReportsLoading(false);
-  }, [user?.id, user?.app_metadata?.tuntas_role]);
+  }, [authReady, isAdmin, adminDashboardOpen, user?.id]);
 
   useEffect(() => {
     loadReports();
@@ -507,12 +520,16 @@ export default function App() {
     supabase.auth.getSession().then(({ data, error: sessionError }) => {
       if (!active) return;
       if (sessionError) console.error("Gagal memeriksa sesi:", sessionError);
-      setUser(data?.session?.user || null);
+      const nextUser = data?.session?.user || null;
+      setUser(nextUser);
+      if (isTuntasAdminUser(nextUser)) setAdminDashboardOpen(true);
       setAuthReady(true);
     });
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
+      const nextUser = session?.user || null;
+      setUser(nextUser);
+      if (isTuntasAdminUser(nextUser)) setAdminDashboardOpen(true);
       setAuthReady(true);
     });
 
@@ -912,6 +929,14 @@ export default function App() {
     );
   });
 
+  if (authReady && isAdmin && adminDashboardOpen) {
+    return (
+      <React.Suspense fallback={<main className="page-shell"><p role="status">Menyiapkan dashboard admin...</p></main>}>
+        <AdminDashboard user={user} onExit={() => setAdminDashboardOpen(false)} />
+      </React.Suspense>
+    );
+  }
+
   return (
     <main className="page-shell">
       <nav className="topbar" aria-label="Navigasi utama" data-mask-reveal>
@@ -923,7 +948,12 @@ export default function App() {
           <a href="#beranda">Beranda</a>
           <a href="#laporan">Buat laporan</a>
           <a href="#laporan-warga">Laporan warga</a>
-          {authReady && user && user.app_metadata?.tuntas_role !== "admin" && (
+          {authReady && isAdmin && (
+            <button type="button" className="topbar-admin-link" onClick={() => setAdminDashboardOpen(true)}>
+              Dashboard admin
+            </button>
+          )}
+          {authReady && user && !isAdmin && (
             <>
               <a href="#ruang-relawan">Ruang relawan</a>
               <a href="#tugas-saya">Tugas ku{String.fromCodePoint(0x1F601)}</a>
@@ -966,18 +996,20 @@ export default function App() {
           <label htmlFor="location">
             Lokasi kejadian <span>(opsional, diperlukan untuk menyimpan laporan)</span>
           </label>
-          <LocationPicker
-            location={location}
-            coordinates={coordinates}
-            onLocationChange={setLocation}
-            onCoordinatesChange={setCoordinates}
-            onSourceChange={setLocationSource}
-            onResolvingChange={setLocationResolving}
-            onError={setError}
-            reports={reports}
-            communityPhotos={communityPhotos}
-            disabled={loading}
-          />
+          <React.Suspense fallback={<div className="location-picker-loading" role="status">Memuat peta lokasi...</div>}>
+            <LocationPicker
+              location={location}
+              coordinates={coordinates}
+              onLocationChange={setLocation}
+              onCoordinatesChange={setCoordinates}
+              onSourceChange={setLocationSource}
+              onResolvingChange={setLocationResolving}
+              onError={setError}
+              reports={reports}
+              communityPhotos={communityPhotos}
+              disabled={loading}
+            />
+          </React.Suspense>
 
           <label htmlFor="description">Pesan untuk TUNTAS AI</label>
           <textarea
@@ -1328,7 +1360,7 @@ export default function App() {
                     {(complaintsByReport[report.id] || []).map((complaint) => {
                       const complaintAttachments = attachmentsByComplaint[complaint.id] || [];
                       if (!complaintAttachments.length) return null;
-                      return (
+                        return (
                         <div className="report-attachment-group" key={complaint.id}>
                           <small>{complaint.is_initial ? "Keluhan awal" : "Keluhan tambahan"} · {formatDate(complaint.created_at)}</small>
                           <div className="report-attachment-list">

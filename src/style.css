@@ -697,3 +697,17 @@ html {
     scroll-margin-top: 104px;
   }
 }
+
+
+/* Admin entry remains inside the existing Neon Wave glass navigation. */
+.topbar-admin-link{
+  display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 12px;
+  border:1px solid rgba(79,183,155,.28);border-radius:10px;
+  color:#116e58;background:linear-gradient(130deg,rgba(203,245,227,.8),rgba(231,249,241,.66));
+  box-shadow:inset 0 1px rgba(255,255,255,.76),0 5px 16px rgba(21,119,91,.08);
+  font:750 10px 'DM Sans',sans-serif;white-space:nowrap;cursor:pointer;
+  transition:background .18s ease,border-color .18s ease,transform .18s ease;
+}
+.topbar-admin-link:hover{transform:translateY(-1px);border-color:rgba(55,161,128,.48);background:linear-gradient(130deg,#d3f6e7,#f4fcf7)}
+.topbar-admin-link:focus-visible{outline:2px solid #28a77d;outline-offset:3px}
+@media(max-width:650px){.topbar-admin-link{min-height:31px;padding:0 9px;font-size:9px}}
