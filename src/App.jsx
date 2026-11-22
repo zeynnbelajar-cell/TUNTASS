@@ -178,6 +178,41 @@ export default function App() {
     setAttachmentPreviews(previews);
     return () => previews.forEach((preview) => URL.revokeObjectURL(preview.url));
   }, [attachmentFiles]);
+  useEffect(() => {
+    const selector = "[data-mask-reveal]";
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (prefersReducedMotion || !("IntersectionObserver" in window)) {
+      document.querySelectorAll(selector).forEach((element) => element.classList.add("is-revealed"));
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("is-revealed");
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -44px 0px" });
+
+    const observeTargets = (root) => {
+      if (root instanceof Element && root.matches(selector)) observer.observe(root);
+      root.querySelectorAll?.(selector).forEach((element) => observer.observe(element));
+    };
+
+    observeTargets(document);
+    const mutations = new MutationObserver((records) => {
+      records.forEach((record) => record.addedNodes.forEach((node) => {
+        if (node instanceof Element) observeTargets(node);
+      }));
+    });
+    mutations.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      mutations.disconnect();
+      observer.disconnect();
+    };
+  }, []);
 
   function uploadLargeFile(file, path, token, contentType, onProgress) {
     return new Promise((resolve, reject) => {
@@ -798,18 +833,24 @@ export default function App() {
 
   return (
     <main className="page-shell">
-      <nav className="topbar">
+      <nav className="topbar" aria-label="Navigasi utama" data-mask-reveal>
         <a className="brand" href="#beranda">
           <span className="brand-mark">T</span>
           <span>TUNTAS</span>
         </a>
-        <span className="nav-tag">Civic Tech · Community Service</span>
+        <div className="topbar-links">
+          <a href="#beranda">Beranda</a>
+          <a href="#laporan">Buat laporan</a>
+          <a href="#laporan-warga">Laporan warga</a>
+        </div>
+        <span className="nav-tag">CIVIC TECH <span aria-hidden="true">/</span> COMMUNITY ACTION</span>
       </nav>
 
-      <section className="hero" id="beranda">
+      <section className="hero" id="beranda" data-mask-reveal>
         <div className="eyebrow">
           <span className="pulse" /> COMMUNITY ACTION PLATFORM
         </div>
+        <div className="ai-shimmer-badge"><Sparkles size={13} /> TUNTAS AI <span>INTELLIGENCE LAYER</span></div>
         <h1>
           Keluhan warga,
           <br />
@@ -823,7 +864,7 @@ export default function App() {
 
       {authReady && <AuthPanel user={user} />}
 
-      <section className="workspace">
+      <section className="workspace" id="laporan" data-mask-reveal>
         <form className="report-card" onSubmit={submitReport}>
           <div className="section-heading">
             <div>
@@ -1075,7 +1116,7 @@ export default function App() {
 
       {authReady && user && <VolunteerCenter user={user} />}
 
-      <section className="reports-section" aria-labelledby="reports-title">
+      <section className="reports-section" id="laporan-warga" aria-labelledby="reports-title" data-mask-reveal>
         <div className="reports-heading">
           <div>
             <span className="step-label">LANGKAH 03</span>
@@ -1116,7 +1157,7 @@ export default function App() {
         ) : (
           <div className="report-list">
             {reports.map((report) => (
-              <article className="report-item" key={report.id}>
+              <article className="report-item" data-mask-reveal key={report.id}>
                 <div className="report-item-top">
                   <span className="report-category">
                     {report.category || "Belum dikategorikan"}

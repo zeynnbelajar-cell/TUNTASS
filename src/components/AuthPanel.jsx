@@ -1,5 +1,12 @@
 ﻿import React, { useState } from "react";
-import { LogIn, LogOut, UserRound, UserPlus } from "lucide-react";
+import {
+  ArrowUpRight,
+  LogIn,
+  LogOut,
+  Sparkles,
+  UserRound,
+  X,
+} from "lucide-react";
 import { supabase } from "../lib/supabase";
 
 export default function AuthPanel({ user }) {
@@ -11,13 +18,19 @@ export default function AuthPanel({ user }) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  function changeMode(nextMode) {
+    setMode(nextMode);
+    setError("");
+    setMessage("");
+  }
+
   async function submit(event) {
     event.preventDefault();
     setError("");
     setMessage("");
 
     if (!supabase) {
-      setError("Supabase belum dikonfigurasi. Periksa file .env.local.");
+      setError("Supabase belum dikonfigurasi. Periksa konfigurasi aplikasi.");
       return;
     }
     if (!email.trim() || password.length < 8) {
@@ -31,7 +44,9 @@ export default function AuthPanel({ user }) {
         const { data, error: authError } = await supabase.auth.signUp({
           email: email.trim(),
           password,
-          options: { emailRedirectTo: new URL(import.meta.env.BASE_URL, window.location.origin).href },
+          options: {
+            emailRedirectTo: new URL(import.meta.env.BASE_URL, window.location.origin).href,
+          },
         });
         if (authError) throw authError;
         if (data.session) {
@@ -64,7 +79,7 @@ export default function AuthPanel({ user }) {
 
   if (user) {
     return (
-      <div className="auth-account" aria-label="Akun aktif">
+      <div className="auth-account" aria-label="Akun aktif" data-mask-reveal>
         <span className="auth-avatar"><UserRound size={16} /></span>
         <span className="auth-account-copy">
           <strong>{user.email}</strong>
@@ -77,41 +92,116 @@ export default function AuthPanel({ user }) {
     );
   }
 
+  const isLogin = mode === "login";
+
   return (
-    <section className="auth-entry" aria-label="Akses relawan">
+    <section className="auth-entry" aria-label="Akses relawan" data-mask-reveal>
       <div className="auth-entry-copy">
         <span className="eyebrow">IKUT AMBIL BAGIAN</span>
         <h2>Ubah laporan menjadi aksi.</h2>
-        <p>Masuk atau daftar untuk mengambil tugas warga dan mengirim bukti penanganan.</p>
+        <p>Masuk sebagai relawan untuk mengambil tugas warga dan membantu menyelesaikan masalah di sekitar.</p>
       </div>
+
       <div className="auth-entry-action">
-        <button type="button" className="auth-toggle" onClick={() => { setOpen((value) => !value); setError(""); setMessage(""); }}>
-          {open ? "Tutup" : "Masuk / daftar relawan"}
+        <button
+          type="button"
+          className={`auth-toggle ${open ? "is-open" : ""}`}
+          aria-expanded={open}
+          aria-controls="tuntas-auth-dropdown"
+          onClick={() => {
+            setOpen((value) => !value);
+            setError("");
+            setMessage("");
+          }}
+        >
+          {open ? <X size={17} /> : <LogIn size={17} />}
+          {open ? "Tutup akses" : "Masuk / daftar relawan"}
+          {!open && <ArrowUpRight size={15} className="auth-toggle-arrow" />}
         </button>
-        {open && (
-          <form className="auth-form" onSubmit={submit}>
-            <div className="auth-mode-switch" role="group" aria-label="Jenis akses">
-              <button type="button" className={mode === "login" ? "active" : ""} onClick={() => { setMode("login"); setError(""); setMessage(""); }}>
-                <LogIn size={14} /> Masuk
-              </button>
-              <button type="button" className={mode === "register" ? "active" : ""} onClick={() => { setMode("register"); setError(""); setMessage(""); }}>
-                <UserPlus size={14} /> Daftar
-              </button>
+
+        <div
+          id="tuntas-auth-dropdown"
+          className={`auth-dropdown ${open ? "is-open" : ""}`}
+          aria-hidden={!open}
+          inert={!open}
+        >
+          <div className="auth-dropdown-inner">
+            <div className="auth-card">
+              <aside className="auth-visual">
+                <span className="auth-visual-kicker"><Sparkles size={13} /> TUNTAS COMMUNITY</span>
+                <div className="auth-visual-orbit" aria-hidden="true"><span /><span /><span /></div>
+                <div className="auth-visual-copy">
+                  <p>{isLogin ? "SENANG MELIHATMU KEMBALI" : "MULAI DARI SATU LANGKAH"}</p>
+                  <h3>{isLogin ? "Selamat datang kembali." : "Ayo bergerak bersama."}</h3>
+                  <span>
+                    {isLogin
+                      ? "Lanjutkan langkah baikmu. Masuk untuk melihat dan menangani laporan warga."
+                      : "Bergabunglah dengan komunitas yang mengubah kepedulian menjadi tindakan nyata."}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="auth-mode-cta"
+                  onClick={() => changeMode(isLogin ? "register" : "login")}
+                >
+                  {isLogin ? "Belum punya akun? Daftar" : "Sudah punya akun? Masuk"}
+                  <ArrowUpRight size={15} />
+                </button>
+              </aside>
+
+              <div className="auth-form-side">
+                <div className="auth-form-heading">
+                  <span>{isLogin ? "WELCOME BACK" : "JOIN THE MOVEMENT"}</span>
+                  <h3>{isLogin ? "Masuk ke TUNTAS" : "Buat akun relawan"}</h3>
+                  <p>{isLogin ? "Masuk untuk melanjutkan kontribusimu." : "Isi data berikut untuk mulai berkontribusi."}</p>
+                </div>
+
+                <form className="auth-form" onSubmit={submit}>
+                  <label htmlFor="auth-email">Alamat email</label>
+                  <input
+                    id="auth-email"
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="nama@email.com"
+                    required
+                  />
+
+                  <label htmlFor="auth-password">Kata sandi</label>
+                  <input
+                    id="auth-password"
+                    type="password"
+                    autoComplete={isLogin ? "current-password" : "new-password"}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    minLength={8}
+                    placeholder="Minimal 8 karakter"
+                    required
+                  />
+
+                  {error && <p className="auth-feedback auth-error" role="alert">{error}</p>}
+                  {message && <p className="auth-feedback auth-success" role="status">{message}</p>}
+
+                  <button className="auth-submit" disabled={busy}>
+                    {busy ? "Memproses..." : isLogin ? "Masuk ke akun" : "Buat akun relawan"}
+                    {!busy && <ArrowUpRight size={16} />}
+                  </button>
+                  <small className="auth-footnote">
+                    Gunakan email aktif. Konfirmasi email mungkin diperlukan sebelum masuk.
+                  </small>
+                </form>
+
+                <div className="auth-mobile-switch">
+                  <button type="button" onClick={() => changeMode(isLogin ? "register" : "login")}>
+                    {isLogin ? "Belum punya akun? Daftar" : "Sudah punya akun? Masuk"}
+                  </button>
+                </div>
+              </div>
             </div>
-            <label htmlFor="auth-email">Email</label>
-            <input id="auth-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="nama@email.com" required />
-            <label htmlFor="auth-password">Kata sandi</label>
-            <input id="auth-password" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} value={password} onChange={(event) => setPassword(event.target.value)} minLength={8} placeholder="Minimal 8 karakter" required />
-            {error && <p className="auth-feedback auth-error" role="alert">{error}</p>}
-            {message && <p className="auth-feedback auth-success" role="status">{message}</p>}
-            <button className="auth-submit" disabled={busy}>
-              {busy ? "Memproses..." : mode === "login" ? "Masuk ke akun" : "Buat akun relawan"}
-            </button>
-            <small className="auth-footnote">Gunakan email aktif. Jika konfirmasi email diaktifkan, kamu perlu membuka tautan verifikasi terlebih dahulu.</small>
-          </form>
-        )}
+          </div>
+        </div>
       </div>
     </section>
   );
 }
-

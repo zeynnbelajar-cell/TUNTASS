@@ -482,7 +482,7 @@ export default function VolunteerCenter({ user }) {
   );
 
   return (
-    <section className="volunteer-center" aria-labelledby="volunteer-title">
+    <section className="volunteer-center" aria-labelledby="volunteer-title" data-mask-reveal>
       <div className="volunteer-heading">
         <div>
           <span className="eyebrow">AKSI WARGA</span>
