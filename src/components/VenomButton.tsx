@@ -12,8 +12,8 @@ type Props = {
   disabled?: boolean;
 };
 
-const SENSE_DISTANCE = 680;
-const RELEASE_DISTANCE = 760;
+const SENSE_DISTANCE = 300;
+const RELEASE_DISTANCE = 360;
 
 const VenomButton = ({
   background = "transparent",
@@ -27,7 +27,6 @@ const VenomButton = ({
   disabled = false,
 }: Props) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const pointerRef = useRef({ x: -1000, y: -1000, active: false });
   const smoothRef = useRef({ x: -1000, y: -1000 });
   const rafRef = useRef<number | null>(null);
@@ -44,10 +43,25 @@ const VenomButton = ({
   }, []);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
     const button = buttonRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (!canvas || !button || !ctx) return;
+    if (!button) return;
+
+    // Mount the viewport canvas directly under <body>. A fixed canvas nested
+    // inside transformed/filtered app cards gets a shifted containing block,
+    // which is why the strands appeared detached from the button.
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute("aria-hidden", "true");
+    Object.assign(canvas.style, {
+      position: "fixed",
+      inset: "0",
+      zIndex: "9999",
+      pointerEvents: "none",
+      width: "100vw",
+      height: "100vh",
+    });
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) { canvas.remove(); return; }
 
     let width = window.innerWidth;
     let height = window.innerHeight;
@@ -203,6 +217,7 @@ const VenomButton = ({
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onLeave);
       window.removeEventListener("blur", onLeave);
+      canvas.remove();
     };
   }, [disabled, reducedMotion]);
 
@@ -221,18 +236,6 @@ const VenomButton = ({
         ...style,
       }}
     >
-      <canvas
-        ref={canvasRef}
-        aria-hidden="true"
-        style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 40,
-          pointerEvents: "none",
-          width: "100vw",
-          height: "100vh",
-        }}
-      />
       <style>{`
         .venom-button {
           position: relative;
