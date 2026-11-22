@@ -1109,3 +1109,9 @@ html {
   .volunteer-profile-avatar-stage { width: 92px; height: 92px; flex-basis: 92px; border-radius: 19px; }
   .volunteer-profile-avatar { border-radius: 18px; font-size: 30px; }
 }
+.volunteer-portfolio-avatar-edit { position: relative; display: grid; padding: 0; cursor: pointer; }
+.volunteer-portfolio-avatar-edit input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.volunteer-avatar-edit-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #f2fffd; background: rgba(3, 20, 27, .68); opacity: 0; transition: opacity .18s ease; }
+.volunteer-portfolio-avatar-edit:hover .volunteer-avatar-edit-overlay,
+.volunteer-portfolio-avatar-edit:focus-within .volunteer-avatar-edit-overlay { opacity: 1; }
+.volunteer-avatar-edit-overlay small { font-size: 10px; font-weight: 800; }

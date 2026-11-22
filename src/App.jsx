@@ -16,6 +16,7 @@ import {
   FileVideo,
   FileText,
   X,
+  Camera,
   Pencil,
   Award,
   CalendarDays,
@@ -200,6 +201,11 @@ export default function App() {
   const [volunteerPortfolioTasks, setVolunteerPortfolioTasks] = useState([]);
   const [volunteerPortfolioReports, setVolunteerPortfolioReports] = useState({});
   const [volunteerPortfolioError, setVolunteerPortfolioError] = useState("");
+  const [volunteerProfileEditing, setVolunteerProfileEditing] = useState(false);
+  const [volunteerProfileSaving, setVolunteerProfileSaving] = useState(false);
+  const [volunteerProfileDraft, setVolunteerProfileDraft] = useState({ full_name: "", phone: "", area: "", skills: "", bio: "" });
+  const [volunteerAvatarFile, setVolunteerAvatarFile] = useState(null);
+  const [volunteerAvatarPreview, setVolunteerAvatarPreview] = useState("");
   const isAdmin = isTuntasAdminUser(user);
   const volunteerDisplayName = volunteerProfile?.full_name?.trim() || getAccountFirstName(user);
   const volunteerAvatarUrl = volunteerProfile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "";
@@ -225,6 +231,16 @@ export default function App() {
     })();
     return () => { cancelled = true; };
   }, [authReady, user?.id, isAdmin]);
+
+  useEffect(() => {
+    if (!volunteerAvatarFile) {
+      setVolunteerAvatarPreview("");
+      return undefined;
+    }
+    const previewUrl = URL.createObjectURL(volunteerAvatarFile);
+    setVolunteerAvatarPreview(previewUrl);
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [volunteerAvatarFile]);
 
   useEffect(() => {
     if (!volunteerPortfolioOpen) return undefined;
@@ -1009,6 +1025,94 @@ export default function App() {
     }
   }
 
+  function beginVolunteerProfileEdit() {
+    setVolunteerProfileDraft({
+      full_name: volunteerProfile?.full_name || "",
+      phone: volunteerProfile?.phone || "",
+      area: volunteerProfile?.area || "",
+      skills: volunteerProfile?.skills || "",
+      bio: volunteerProfile?.bio || "",
+    });
+    setVolunteerAvatarFile(null);
+    setVolunteerPortfolioError("");
+    setVolunteerProfileEditing(true);
+  }
+
+  function cancelVolunteerProfileEdit() {
+    setVolunteerProfileEditing(false);
+    setVolunteerAvatarFile(null);
+    setVolunteerPortfolioError("");
+  }
+
+  async function saveVolunteerProfile(event) {
+    event.preventDefault();
+    setVolunteerPortfolioError("");
+    const cleanName = volunteerProfileDraft.full_name.trim();
+    const cleanPhone = volunteerProfileDraft.phone.trim();
+    if (cleanName.length < 2 || cleanName.length > 80) {
+      setVolunteerPortfolioError("Nama harus terdiri dari 2–80 karakter.");
+      return;
+    }
+    if (cleanPhone.length > 30 || volunteerProfileDraft.area.length > 120 || volunteerProfileDraft.skills.length > 240 || volunteerProfileDraft.bio.length > 600) {
+      setVolunteerPortfolioError("Ada isian yang melebihi batas karakter.");
+      return;
+    }
+    if (volunteerAvatarFile && (!(["image/jpeg", "image/png", "image/webp"].includes(volunteerAvatarFile.type)) || volunteerAvatarFile.size > 3 * 1024 * 1024)) {
+      setVolunteerPortfolioError("Gunakan foto JPG, PNG, atau WEBP dengan ukuran maksimal 3 MB.");
+      return;
+    }
+
+    setVolunteerProfileSaving(true);
+    try {
+      let avatarUrl = volunteerProfile?.avatar_url || null;
+      if (volunteerAvatarFile) {
+        const extensions = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+        const path = `${user.id}/avatar.${extensions[volunteerAvatarFile.type]}`;
+        const { error: uploadError } = await supabase.storage.from("volunteer-avatars").upload(path, volunteerAvatarFile, {
+          upsert: true, cacheControl: "3600", contentType: volunteerAvatarFile.type,
+        });
+        if (uploadError) throw uploadError;
+        const { data: publicData } = supabase.storage.from("volunteer-avatars").getPublicUrl(path);
+        avatarUrl = `${publicData.publicUrl}?v=${Date.now()}`;
+      }
+
+      const { data, error: updateError } = await supabase
+        .from("volunteer_profiles")
+        .update({
+          full_name: cleanName,
+          phone: cleanPhone || null,
+          area: volunteerProfileDraft.area.trim() || null,
+          skills: volunteerProfileDraft.skills.trim() || null,
+          bio: volunteerProfileDraft.bio.trim() || null,
+          avatar_url: avatarUrl,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", user.id)
+        .select("user_id, full_name, phone, bio, skills, area, avatar_url, created_at, updated_at")
+        .single();
+      if (updateError) throw updateError;
+      setVolunteerProfile(data);
+      setVolunteerProfileEditing(false);
+      setVolunteerAvatarFile(null);
+    } catch (saveError) {
+      setVolunteerPortfolioError(saveError.message || "Profil gagal diperbarui.");
+    } finally {
+      setVolunteerProfileSaving(false);
+    }
+  }
+
+  function chooseVolunteerAvatar(event) {
+    const file = event.target.files?.[0] || null;
+    event.target.value = "";
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 3 * 1024 * 1024) {
+      setVolunteerPortfolioError("Gunakan foto JPG, PNG, atau WEBP dengan ukuran maksimal 3 MB.");
+      return;
+    }
+    setVolunteerPortfolioError("");
+    setVolunteerAvatarFile(file);
+  }
+
   const communityPhotos = reports.flatMap((report) => {
     const complaintRows = complaintsByReport[report.id] || [];
     return complaintRows.flatMap((complaint) =>
@@ -1092,16 +1196,28 @@ export default function App() {
             <button type="button" className="volunteer-portfolio-close" onClick={() => setVolunteerPortfolioOpen(false)} aria-label="Tutup portofolio"><X size={18} /></button>
             <div className="volunteer-portfolio-cover">
               <div className="volunteer-portfolio-identity">
-                <div className="volunteer-portfolio-avatar-large">
-                  {volunteerAvatarUrl ? (
-                    <img src={volunteerAvatarUrl} alt={"Foto " + volunteerDisplayName} />
-                  ) : (
-                    <span>{volunteerDisplayName.charAt(0).toUpperCase()}</span>
-                  )}
-                </div>
+                {volunteerProfileEditing ? (
+                  <label className="volunteer-portfolio-avatar-large volunteer-portfolio-avatar-edit" title="Klik untuk mengganti foto profil">
+                    {(volunteerAvatarPreview || volunteerAvatarUrl) ? (
+                      <img src={volunteerAvatarPreview || volunteerAvatarUrl} alt={"Pratinjau foto " + volunteerDisplayName} />
+                    ) : (
+                      <span>{volunteerDisplayName.charAt(0).toUpperCase()}</span>
+                    )}
+                    <span className="volunteer-avatar-edit-overlay"><Camera size={19} /><small>Ganti foto</small></span>
+                    <input type="file" accept="image/jpeg,image/png,image/webp" onChange={chooseVolunteerAvatar} aria-label="Pilih foto profil" />
+                  </label>
+                ) : (
+                  <div className="volunteer-portfolio-avatar-large">
+                    {volunteerAvatarUrl ? (
+                      <img src={volunteerAvatarUrl} alt={"Foto " + volunteerDisplayName} />
+                    ) : (
+                      <span>{volunteerDisplayName.charAt(0).toUpperCase()}</span>
+                    )}
+                  </div>
+                )}
                 <div className="volunteer-portfolio-heading-copy">
                   <span className="volunteer-portfolio-kicker"><i /> PORTOFOLIO RELAWAN TUNTAS</span>
-                  <h2 id="volunteer-portfolio-title">{volunteerDisplayName}</h2>
+                  <h2 id="volunteer-portfolio-title">{volunteerProfileEditing ? (volunteerProfileDraft.full_name || volunteerDisplayName) : volunteerDisplayName}</h2>
                   <p>{user.email || "Anggota komunitas TUNTAS"}</p>
                 </div>
               </div>
@@ -1109,17 +1225,11 @@ export default function App() {
                 <button
                   type="button"
                   className="volunteer-portfolio-photo-action"
-                  onClick={() => {
-                    setVolunteerPortfolioOpen(false);
-                    window.setTimeout(() => {
-                      const profileForm = document.getElementById("profil-relawan");
-                      profileForm?.scrollIntoView({ behavior: "smooth", block: "center" });
-                      profileForm?.querySelector("input")?.focus({ preventScroll: true });
-                    }, 120);
-                  }}
+                  onClick={volunteerProfileEditing ? cancelVolunteerProfileEdit : beginVolunteerProfileEdit}
+                  disabled={volunteerProfileSaving}
                 >
-                  <Pencil size={14} />
-                  <span>Edit profil</span>
+                  {volunteerProfileEditing ? <X size={14} /> : <Pencil size={14} />}
+                  <span>{volunteerProfileEditing ? "Tutup edit" : "Edit profil"}</span>
                 </button>
               )}
             </div>
@@ -1139,13 +1249,31 @@ export default function App() {
               </div>
             ) : (
               <>
-                <div className="volunteer-portfolio-facts">
-                  <div><span><MapPin size={13} /> DOMISILI</span><strong>{volunteerProfile.area || "Belum ditambahkan"}</strong></div>
-                  <div><span><Award size={13} /> KEAHLIAN</span><strong>{volunteerProfile.skills || "Belum ditambahkan"}</strong></div>
-                  <div><span><CalendarDays size={13} /> BERGABUNG</span><strong>{volunteerProfile.created_at ? formatDate(volunteerProfile.created_at) : "Anggota TUNTAS"}</strong></div>
-                  <div><span><Phone size={13} /> KONTAK</span><strong>{volunteerProfile.phone || "Belum ditambahkan"}</strong></div>
-                </div>
-                {volunteerProfile.bio && <p className="volunteer-portfolio-bio">{volunteerProfile.bio}</p>}
+                {volunteerProfileEditing ? (
+                  <form className="volunteer-portfolio-edit" onSubmit={saveVolunteerProfile}>
+                    <div className="volunteer-portfolio-edit-grid">
+                      <label>Nama lengkap<input value={volunteerProfileDraft.full_name} onChange={(event) => setVolunteerProfileDraft((current) => ({ ...current, full_name: event.target.value }))} maxLength={80} required /></label>
+                      <label>Nomor kontak<input value={volunteerProfileDraft.phone} onChange={(event) => setVolunteerProfileDraft((current) => ({ ...current, phone: event.target.value }))} maxLength={30} placeholder="08xx..." /></label>
+                      <label>Domisili<input value={volunteerProfileDraft.area} onChange={(event) => setVolunteerProfileDraft((current) => ({ ...current, area: event.target.value }))} maxLength={120} placeholder="Kelurahan, kecamatan, atau kota" /></label>
+                      <label>Keahlian<input value={volunteerProfileDraft.skills} onChange={(event) => setVolunteerProfileDraft((current) => ({ ...current, skills: event.target.value }))} maxLength={240} placeholder="Contoh: kebersihan, dokumentasi" /></label>
+                    </div>
+                    <label className="volunteer-portfolio-edit-about">Tentang saya<textarea value={volunteerProfileDraft.bio} onChange={(event) => setVolunteerProfileDraft((current) => ({ ...current, bio: event.target.value }))} maxLength={600} rows={3} placeholder="Ceritakan pengalaman, motivasi, atau kontribusimu..." /></label>
+                    <div className="volunteer-portfolio-edit-actions">
+                      <button type="submit" className="volunteer-portfolio-save" disabled={volunteerProfileSaving}><CheckCircle2 size={15} /> {volunteerProfileSaving ? "Menyimpan..." : "Simpan perubahan"}</button>
+                      <button type="button" className="volunteer-portfolio-cancel" onClick={cancelVolunteerProfileEdit} disabled={volunteerProfileSaving}>Batal</button>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <div className="volunteer-portfolio-facts">
+                      <div><span><MapPin size={13} /> DOMISILI</span><strong>{volunteerProfile.area || "Belum ditambahkan"}</strong></div>
+                      <div><span><Award size={13} /> KEAHLIAN</span><strong>{volunteerProfile.skills || "Belum ditambahkan"}</strong></div>
+                      <div><span><CalendarDays size={13} /> BERGABUNG</span><strong>{volunteerProfile.created_at ? formatDate(volunteerProfile.created_at) : "Anggota TUNTAS"}</strong></div>
+                      <div><span><Phone size={13} /> KONTAK</span><strong>{volunteerProfile.phone || "Belum ditambahkan"}</strong></div>
+                    </div>
+                    {volunteerProfile.bio && <p className="volunteer-portfolio-bio">{volunteerProfile.bio}</p>}
+                  </>
+                )}
                 <div className="volunteer-portfolio-metrics">
                   <article><strong>{volunteerPortfolioTasks.length}</strong><span>Total tugas</span></article>
                   <article><strong>{volunteerPortfolioTasks.filter((task) => task.status === "verified").length}</strong><span>Terselesaikan</span></article>
