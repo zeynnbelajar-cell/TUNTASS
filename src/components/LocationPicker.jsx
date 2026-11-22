@@ -336,8 +336,14 @@ export default function LocationPicker({
             reports={reports}
             viewMode={validCoordinates(coordinates) ? "location" : "globe"}
             onPick={handleMapPick}
-            onError={() => {
-              setMapError("Globe 3D tidak dapat dijalankan pada perangkat ini. Peta cadangan diaktifkan.");
+            onError={(reason) => {
+              const detail = String(reason || "").toLowerCase();
+              const explanation = /webgl|context/.test(detail)
+                ? "Browser tidak menyediakan konteks WebGL."
+                : /memory|allocation/.test(detail)
+                  ? "Memori grafis tidak mencukupi untuk globe 3D."
+                  : "Globe 3D gagal dimuat.";
+              setMapError(explanation + " Peta cadangan diaktifkan.");
               setMapEngine("maplibre");
             }}
           />

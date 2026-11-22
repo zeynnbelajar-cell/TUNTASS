@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Compass, Minus, Plus } from "lucide-react";
 import {
   getCameraFlightProfile,
+  getGlobePerformanceProfile,
   getOverpassBounds,
   normalizeCoordinates,
 } from "../earth/earthConfig";
@@ -46,11 +47,29 @@ export default function CesiumEarthMap({
   const previousPointRef = useRef(null);
   const callbacksRef = useRef({});
   callbacksRef.current = { onPick, onError };
+  const [active, setActive] = useState(false);
   const [ready, setReady] = useState(false);
   const [buildingMessage, setBuildingMessage] = useState("");
   const [imageryMessage, setImageryMessage] = useState("");
   const [viewerError, setViewerError] = useState("");
   const [networkRevision, setNetworkRevision] = useState(0);
+
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element || !("IntersectionObserver" in window)) {
+      setActive(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      setActive(true);
+      observer.disconnect();
+    }, { rootMargin: "160px" });
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const retryOptionalLayers = () => setNetworkRevision((revision) => revision + 1);
@@ -59,12 +78,30 @@ export default function CesiumEarthMap({
   }, []);
 
   useEffect(() => {
+    if (!active) return undefined;
+
     let disposed = false;
     let viewer;
     let clickHandler;
+    let visibilityObserver;
+    let removeCameraMoveListener;
+    let handleContextLost;
 
     async function createViewer() {
       try {
+        const testCanvas = document.createElement("canvas");
+        const testContext =
+          testCanvas.getContext("webgl2", { antialias: false }) ||
+          testCanvas.getContext("webgl", { antialias: false });
+        if (!testContext) {
+          throw new Error("WebGL tidak tersedia atau dinonaktifkan di browser.");
+        }
+        testContext.getExtension("WEBGL_lose_context")?.loseContext();
+
+        const renderProfile = getGlobePerformanceProfile({
+          deviceMemory: navigator.deviceMemory,
+          hardwareConcurrency: navigator.hardwareConcurrency,
+        });
         window.CESIUM_BASE_URL = `${import.meta.env.BASE_URL}cesium/`;
         const Cesium = await import("cesium");
         if (disposed || !containerRef.current) return;
@@ -90,20 +127,27 @@ export default function CesiumEarthMap({
           infoBox: false,
           selectionIndicator: false,
           scene3DOnly: true,
-          shouldAnimate: true,
-          requestRenderMode: false,
+          shouldAnimate: false,
+          useBrowserRecommendedResolution: true,
+          msaaSamples: 1,
+          requestRenderMode: true,
+          maximumRenderTimeChange: Number.POSITIVE_INFINITY,
+          targetFrameRate: renderProfile.targetFrameRate,
           contextOptions: {
             webgl: {
               alpha: false,
-              antialias: true,
-              powerPreference: "high-performance",
+              antialias: false,
+              powerPreference: renderProfile.constrained ? "default" : "high-performance",
             },
           },
         });
 
-        viewer.scene.globe.enableLighting = true;
+        viewer.resolutionScale = renderProfile.resolutionScale;
+        viewer.scene.globe.maximumScreenSpaceError = renderProfile.maximumScreenSpaceError;
+        viewer.scene.globe.tileCacheSize = renderProfile.tileCacheSize;
+        viewer.scene.globe.enableLighting = !renderProfile.constrained;
         viewer.scene.globe.showGroundAtmosphere = true;
-        viewer.scene.globe.dynamicAtmosphereLighting = true;
+        viewer.scene.globe.dynamicAtmosphereLighting = false;
         viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#071824");
         viewer.scene.globe.showWaterEffect = false;
         viewer.scene.skyAtmosphere.show = true;
@@ -132,8 +176,22 @@ export default function CesiumEarthMap({
           credit: SENTINEL_2_ATTRIBUTION,
         });
         const sentinelLayer = viewer.imageryLayers.addImageryProvider(sentinelProvider);
+        sentinelLayer.show = false;
         let sentinelTileErrors = 0;
         let sentinelFallbackActivated = false;
+
+        const updateImageryDetail = () => {
+          if (sentinelFallbackActivated || viewer.isDestroyed()) return;
+          const nearSurface = viewer.camera.positionCartographic.height < 1_200_000;
+          if (sentinelLayer.show !== nearSurface) {
+            sentinelLayer.show = nearSurface;
+            viewer.scene.requestRender();
+          }
+        };
+        viewer.camera.moveEnd.addEventListener(updateImageryDetail);
+        removeCameraMoveListener = () => {
+          viewer.camera.moveEnd.removeEventListener(updateImageryDetail);
+        };
         sentinelLayer.errorEvent.addEventListener((error) => {
           sentinelTileErrors += 1;
           console.warn("EOxCloudless Sentinel-2 imagery tile error:", error);
@@ -160,6 +218,24 @@ export default function CesiumEarthMap({
             DEFAULT_CENTER.height
           ),
         });
+        updateImageryDetail();
+
+        if ("IntersectionObserver" in window) {
+          visibilityObserver = new IntersectionObserver(([entry]) => {
+            if (disposed || !viewer || viewer.isDestroyed()) return;
+            viewer.useDefaultRenderLoop = entry.isIntersecting;
+            if (entry.isIntersecting) viewer.scene.requestRender();
+          });
+          visibilityObserver.observe(containerRef.current);
+        }
+
+        handleContextLost = (event) => {
+          event.preventDefault();
+          const message = "Konteks grafis WebGL terputus. Peta cadangan diaktifkan.";
+          setViewerError(message);
+          callbacksRef.current.onError?.(message);
+        };
+        viewer.scene.canvas.addEventListener("webglcontextlost", handleContextLost, false);
 
         clickHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
         clickHandler.setInputAction((movement) => {
@@ -181,11 +257,13 @@ export default function CesiumEarthMap({
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
         viewer.scene.canvas.style.cursor = "crosshair";
+        viewer.scene.requestRender();
         viewerRef.current = viewer;
         setReady(true);
         setViewerError("");
       } catch (error) {
         if (!disposed) {
+          console.error("TUNTAS Cesium initialization failed:", error);
           const message = error?.message || "CesiumJS gagal diinisialisasi.";
           setViewerError(message);
           callbacksRef.current.onError?.(message);
@@ -198,6 +276,11 @@ export default function CesiumEarthMap({
     return () => {
       disposed = true;
       buildingControllerRef.current?.abort();
+      visibilityObserver?.disconnect();
+      removeCameraMoveListener?.();
+      if (viewer?.scene?.canvas && handleContextLost) {
+        viewer.scene.canvas.removeEventListener("webglcontextlost", handleContextLost);
+      }
       if (clickHandler && !clickHandler.isDestroyed()) clickHandler.destroy();
       if (viewer && !viewer.isDestroyed()) viewer.destroy();
       viewerRef.current = null;
@@ -205,7 +288,7 @@ export default function CesiumEarthMap({
       selectedEntityRef.current = null;
       setReady(false);
     };
-  }, []);
+  }, [active]);
 
   useEffect(() => {
     const viewer = viewerRef.current;
@@ -238,6 +321,7 @@ export default function CesiumEarthMap({
       });
       reportEntityIdsRef.current.push(id);
     }
+    viewer.scene.requestRender();
   }, [reports, ready]);
 
   useEffect(() => {
@@ -288,6 +372,7 @@ export default function CesiumEarthMap({
 
     if (profile.duration === 0) {
       viewer.camera.setView({ destination, orientation });
+      viewer.scene.requestRender();
     } else {
       viewer.camera.flyTo({
         destination,
@@ -366,8 +451,10 @@ export default function CesiumEarthMap({
           });
           buildingEntityIdsRef.current.push(id);
           added += 1;
+          if (added >= 250) break;
         }
 
+        viewer.scene.requestRender();
         setBuildingMessage(
           added > 0
             ? `${added} bangunan 3D dari OpenStreetMap`

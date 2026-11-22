@@ -42,3 +42,18 @@ export function getOverpassBounds(coordinates, radiusMeters = 900) {
     east: point.longitude + longitudeDelta,
   };
 }
+
+
+export function getGlobePerformanceProfile({ deviceMemory, hardwareConcurrency } = {}) {
+  const hasLowMemory = Number.isFinite(deviceMemory) && deviceMemory <= 4;
+  const hasFewCores = Number.isFinite(hardwareConcurrency) && hardwareConcurrency <= 4;
+  const constrained = hasLowMemory || hasFewCores;
+
+  return {
+    constrained,
+    targetFrameRate: constrained ? 30 : 45,
+    resolutionScale: constrained ? 0.85 : 1,
+    maximumScreenSpaceError: constrained ? 6 : 4,
+    tileCacheSize: constrained ? 32 : 48,
+  };
+}
