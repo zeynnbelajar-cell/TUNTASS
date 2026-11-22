@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, LogIn, LogOut, UserRound, X } from "lucide-react";
+import { ArrowUpRight, Eye, EyeOff, LogIn, LogOut, UserRound, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { isTuntasAdminUser, TUNTAS_ADMIN_EMAIL } from "../lib/adminAccess";
 
@@ -13,6 +13,7 @@ export default function AuthPanel({ user }) {
   const transitionTimer = useRef(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -95,7 +96,17 @@ export default function AuthPanel({ user }) {
         setPassword("");
       }
     } catch (authError) {
-      setError(authError.message || "Autentikasi gagal. Periksa email dan kata sandi.");
+      const authCode = authError.code || authError.error || "";
+      const authMessage = String(authError.message || "").toLowerCase();
+      if (authCode === "invalid_credentials" || authMessage.includes("invalid login credentials")) {
+        setError("Email atau kata sandi salah. Periksa kembali, lalu coba lagi. Kamu bisa tekan ikon mata untuk melihat kata sandi.");
+      } else if (authCode === "email_not_confirmed" || authMessage.includes("email not confirmed")) {
+        setError("Email belum dikonfirmasi. Buka pesan konfirmasi dari Supabase di kotak masuk email.");
+      } else if (authCode === "user_banned") {
+        setError("Akun sedang dinonaktifkan. Hubungi admin TUNTAS.");
+      } else {
+        setError(authError.message || "Autentikasi gagal. Coba lagi beberapa saat.");
+      }
     } finally {
       setBusy(false);
     }
@@ -200,17 +211,29 @@ export default function AuthPanel({ user }) {
                   />
 
                   <label htmlFor="auth-password">Kata sandi</label>
-                  <input
-                    id="auth-password"
-                    type="password"
-                    autoComplete={isLogin ? "current-password" : "new-password"}
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    minLength={8}
-                    placeholder="Minimal 8 karakter"
-                    disabled={busy || isSliding}
-                    required
-                  />
+                  <div className="auth-password-field">
+                    <input
+                      id="auth-password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete={isLogin ? "current-password" : "new-password"}
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      minLength={8}
+                      placeholder="Minimal 8 karakter"
+                      disabled={busy || isSliding}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="auth-password-visibility"
+                      aria-label={showPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
+                      aria-pressed={showPassword}
+                      onClick={() => setShowPassword((visible) => !visible)}
+                      disabled={busy || isSliding}
+                    >
+                      {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                    </button>
+                  </div>
 
                   {error && <p className="auth-feedback auth-error" role="alert">{error}</p>}
                   {message && <p className="auth-feedback auth-success" role="status">{message}</p>}

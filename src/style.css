@@ -711,3 +711,12 @@ html {
 .topbar-admin-link:hover{transform:translateY(-1px);border-color:rgba(55,161,128,.48);background:linear-gradient(130deg,#d3f6e7,#f4fcf7)}
 .topbar-admin-link:focus-visible{outline:2px solid #28a77d;outline-offset:3px}
 @media(max-width:650px){.topbar-admin-link{min-height:31px;padding:0 9px;font-size:9px}}
+
+/* Password visibility control for the login and registration form. */
+.auth-password-field{position:relative;display:flex;align-items:center;width:100%;min-width:0}
+.auth-password-field input{width:100%;padding-right:46px!important}
+.auth-password-visibility{position:absolute;right:7px;top:50%;display:grid;place-items:center;width:34px;height:32px;transform:translateY(-50%);border:0;border-radius:8px;background:transparent;color:#77758a;cursor:pointer;transition:background .16s ease,color .16s ease}
+.auth-password-visibility:hover{background:#f6edf2;color:#df3e68}
+.auth-password-visibility:focus-visible{outline:2px solid #ec6a88;outline-offset:1px}
+.auth-password-visibility:disabled{opacity:.5;cursor:wait}
+@media(max-width:650px){.auth-password-visibility{right:3px;width:30px;height:30px}}
