@@ -530,9 +530,21 @@ export default function AdminDashboard({ user, onExit }) {
     setActiveView("detail");
   }
 
-  function openVolunteerPortfolio(volunteer) {
+  async function openVolunteerPortfolio(volunteer) {
     setSelectedVolunteerId(volunteer.user_id);
     setActiveView("volunteer-portfolio");
+    // Refresh the selected profile so edits made by the volunteer appear immediately.
+    const { data: latestProfile, error } = await supabase
+      .from("volunteer_profiles")
+      .select("user_id, full_name, phone, bio, skills, area, avatar_url, created_at, updated_at")
+      .eq("user_id", volunteer.user_id)
+      .maybeSingle();
+    if (!error && latestProfile) {
+      setData((current) => ({
+        ...current,
+        volunteers: current.volunteers.map((item) => item.user_id === volunteer.user_id ? latestProfile : item),
+      }));
+    }
   }
 
   function exportReports() {
@@ -894,6 +906,22 @@ export default function AdminDashboard({ user, onExit }) {
             </div>
           </div>
           <span className={`admin-portfolio-status ${activeTasks > 0 ? "is-active" : "is-idle"}`}><i /> {activeTasks > 0 ? "Sedang aktif di lapangan" : "Tidak ada tugas aktif"}</span>
+        </section>
+
+        <section className="admin-panel admin-volunteer-profile-details">
+          <div className="admin-panel-heading">
+            <div><span className="admin-overline">DATA AKUN RELAWAN</span><h2>Informasi profil</h2><p>Data terbaru yang diisi atau diubah relawan melalui akun mereka.</p></div>
+            <span className="admin-mini-count">Profil tersimpan</span>
+          </div>
+          <div className="admin-volunteer-profile-grid">
+            <article><span>NAMA LENGKAP</span><strong>{selectedVolunteer.full_name || "Belum diisi"}</strong></article>
+            <article><span>NOMOR KONTAK</span><strong>{selectedVolunteer.phone || "Belum diisi"}</strong></article>
+            <article><span>DOMISILI / WILAYAH</span><strong>{selectedVolunteer.area || "Belum diisi"}</strong></article>
+            <article><span>KEAHLIAN</span><strong>{selectedVolunteer.skills || "Belum diisi"}</strong></article>
+            <article className="is-wide"><span>TENTANG SAYA</span><p>{selectedVolunteer.bio || "Relawan belum menambahkan deskripsi diri."}</p></article>
+            <article><span>TERAKHIR DIEDIT</span><strong>{formatDate(selectedVolunteer.updated_at, true)}</strong></article>
+            <article><span>BERGABUNG SEJAK</span><strong>{formatDate(selectedVolunteer.created_at, true)}</strong></article>
+          </div>
         </section>
 
         <div className="admin-portfolio-stats">

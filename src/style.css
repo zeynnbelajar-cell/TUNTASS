@@ -1209,3 +1209,17 @@ html {
   .brand-profile { display: inline-flex; align-items: center; gap: 10px; width: auto; max-width: calc(100% - 56px); }
   .brand-profile-name { display: inline-block !important; min-width: 0; max-width: min(190px, calc(100vw - 150px)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
+
+/* Admin volunteer portfolio: mirror the editable fields shown in the volunteer account. */
+.admin-volunteer-profile-details { margin: 0 0 20px; padding: 22px; }
+.admin-volunteer-profile-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.admin-volunteer-profile-grid article { min-width: 0; display: flex; flex-direction: column; gap: 8px; padding: 15px 16px; border: 1px solid var(--admin-border, rgba(150,190,210,.15)); border-radius: 13px; background: var(--admin-surface-soft, rgba(255,255,255,.025)); }
+.admin-volunteer-profile-grid article > span { color: var(--admin-muted, #91a9b8); font-size: 9px; font-weight: 800; letter-spacing: .13em; }
+.admin-volunteer-profile-grid article > strong { color: var(--admin-text, #eaf5fb); font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+.admin-volunteer-profile-grid article > p { margin: 0; color: var(--admin-text-soft, #b5c7d1); font-size: 12px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+.admin-volunteer-profile-grid article.is-wide { grid-column: 1 / -1; }
+@media(max-width:650px) {
+  .admin-volunteer-profile-details { padding: 15px; }
+  .admin-volunteer-profile-grid { grid-template-columns: minmax(0, 1fr); gap: 9px; }
+  .admin-volunteer-profile-grid article.is-wide { grid-column: auto; }
+}
