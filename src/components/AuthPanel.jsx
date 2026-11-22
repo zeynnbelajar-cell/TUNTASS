@@ -181,17 +181,16 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
 
     setBusy(true);
     try {
-      const { error: updateError } = await supabase.auth.updateUser({ password });
+      const { data: updatedData, error: updateError } = await supabase.auth.updateUser({ password });
       if (updateError) throw updateError;
 
-      const { error: signOutError } = await supabase.auth.signOut();
-      if (signOutError) console.warn("Kata sandi berubah, tetapi sesi belum keluar:", signOutError);
-
+      // Keep the verified recovery session alive. Signing out here forced users
+      // to re-enter a password immediately after a successful reset.
       setPassword("");
       setConfirmPassword("");
       setPasswordFlow("none");
-      setMessage("Kata sandi berhasil diperbarui. Silakan masuk menggunakan kata sandi baru.");
-      onPasswordRecoveryComplete?.();
+      setMessage("Kata sandi berhasil diperbarui. Membuka dashboard akunmu...");
+      onPasswordRecoveryComplete?.(updatedData?.user || null);
     } catch (updateError) {
       console.error("Pembaruan kata sandi gagal:", updateError);
       setError(updateError.message || "Kata sandi gagal diperbarui. Buka kembali tautan pemulihan terbaru.");

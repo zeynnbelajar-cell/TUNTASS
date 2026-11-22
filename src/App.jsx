@@ -988,9 +988,10 @@ export default function App() {
         <AuthPanel
           user={user}
           passwordRecoveryActive={passwordRecoveryActive}
-          onPasswordRecoveryComplete={() => {
+          onPasswordRecoveryComplete={(recoveredUser) => {
+            if (recoveredUser) setUser(recoveredUser);
             setPasswordRecoveryActive(false);
-            setAdminDashboardOpen(false);
+            setAdminDashboardOpen(true);
           }}
         />
       )}
