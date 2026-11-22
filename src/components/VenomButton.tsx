@@ -20,7 +20,7 @@ const VenomButton = ({
   gooColor = "#00e83f",
   textColor = "#FFFFFF",
   label = "We are Venom",
-  size = 58,
+  size = 44,
   onClick,
   style,
   type = "button",
@@ -88,35 +88,42 @@ const VenomButton = ({
       const dy = ey - sy;
       const length = Math.hypot(dx, dy);
       if (length < 2) return;
-      const wave = Math.sin(time * 0.002 + phase) * Math.min(24, length * 0.045);
-      const c1x = sx + dx * .28 + nx * (spread + wave);
-      const c1y = sy + dy * .28 + ny * (spread + wave);
-      const c2x = sx + dx * .76 + nx * (spread * .32 - wave * .35);
-      const c2y = sy + dy * .76 + ny * (spread * .32 - wave * .35);
 
-      ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.bezierCurveTo(c1x, c1y, c2x, c2y, ex, ey);
-      const grad = ctx.createLinearGradient(sx, sy, ex, ey);
-      grad.addColorStop(0, "rgba(0,255,74,.98)");
-      grad.addColorStop(.48, "rgba(0,239,67,.88)");
-      grad.addColorStop(.86, "rgba(64,255,112,.72)");
-      grad.addColorStop(1, "rgba(0,255,90,.12)");
-      ctx.strokeStyle = grad;
-      ctx.lineWidth = thickness;
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.shadowColor = "rgba(0,255,76,.92)";
-      ctx.shadowBlur = 9 + thickness * 2;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
+      // The reference uses several hair-thin, independently rippling filaments,
+      // not a handful of thick straight strokes.
+      const drawFilament = (offset: number, phaseShift: number, width: number, alpha: number) => {
+        ctx.beginPath();
+        for (let step = 0; step <= 34; step += 1) {
+          const t = step / 34;
+          const envelope = Math.sin(Math.PI * t);
+          const broad = Math.sin(t * Math.PI * 1.55 + time * .0021 + phase + phaseShift) * Math.min(18, length * .035);
+          const fine = Math.sin(t * Math.PI * 4.2 - time * .0032 + phase * 1.7 + phaseShift) * Math.min(4.5, length * .009);
+          const taper = (broad + fine) * envelope;
+          const curve = spread * Math.sin(Math.PI * t) * (1 - t * .28);
+          const x = sx + dx * t + nx * (offset + curve + taper);
+          const y = sy + dy * t + ny * (offset + curve + taper);
+          if (step === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        const grad = ctx.createLinearGradient(sx, sy, ex, ey);
+        grad.addColorStop(0, `rgba(0,255,54,${alpha})`);
+        grad.addColorStop(.42, `rgba(0,255,70,${alpha * .92})`);
+        grad.addColorStop(.82, `rgba(58,255,102,${alpha * .78})`);
+        grad.addColorStop(1, "rgba(0,255,72,.08)");
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = width;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.shadowColor = "rgba(0,255,65,.9)";
+        ctx.shadowBlur = 4.5;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      };
 
-      ctx.beginPath();
-      ctx.moveTo(sx, sy - .35);
-      ctx.bezierCurveTo(c1x, c1y - .35, c2x, c2y - .35, ex, ey - .35);
-      ctx.strokeStyle = "rgba(225,255,232,.82)";
-      ctx.lineWidth = Math.max(.55, thickness * .18);
-      ctx.stroke();
+      drawFilament(-1.05, .0, Math.max(.72, thickness * .34), .88);
+      drawFilament(.15, 1.7, Math.max(.62, thickness * .27), .96);
+      drawFilament(1.15, 3.1, Math.max(.62, thickness * .25), .76);
+      drawFilament(.1, 4.8, .48, .55);
     };
 
     function draw(time: number) {
@@ -236,19 +243,19 @@ const VenomButton = ({
           justify-content: center;
           width: 100%;
           max-width: 100%;
-          border: 1px solid rgba(210,255,220,.72);
+          border: 1px solid rgba(225,255,231,.9);
           border-radius: 9999px;
           padding: 0 28px;
           overflow: hidden;
           cursor: pointer;
-          font: 850 13px/1 system-ui, sans-serif;
-          letter-spacing: .025em;
+          font: 700 13px/1 Georgia, 'Times New Roman', serif;
+          letter-spacing: .005em;
           box-shadow:
-            inset 0 2px 2px rgba(255,255,255,.82),
-            inset 0 -4px 7px rgba(0,100,28,.34),
-            0 2px 4px rgba(0,0,0,.16),
-            0 7px 15px rgba(0,220,58,.28),
-            0 13px 22px -12px rgba(0,0,0,.4);
+            inset 0 2px 2px rgba(255,255,255,.95),
+            inset 0 -3px 7px rgba(0,100,24,.3),
+            0 2px 3px rgba(0,0,0,.12),
+            0 5px 12px rgba(0,230,54,.25),
+            0 10px 18px -12px rgba(0,0,0,.3);
           transition:
             transform 420ms cubic-bezier(.2,.85,.2,1),
             box-shadow 420ms ease,
@@ -277,7 +284,8 @@ const VenomButton = ({
           position: relative;
           z-index: 1;
           color: #fff;
-          text-shadow: 0 1px 2px rgba(0,90,25,.5), 0 0 10px rgba(255,255,255,.36);
+          font-family: Georgia, 'Times New Roman', serif;
+          text-shadow: 0 1px 1px rgba(0,90,25,.42), 0 0 7px rgba(255,255,255,.28);
         }
         .venom-button:focus-visible {
           outline: 3px solid #8ff8a8;
@@ -306,7 +314,7 @@ const VenomButton = ({
           zIndex: 41,
           height: size,
           color: textColor,
-          background: `linear-gradient(180deg, #70ff9a 0%, #20f45b 22%, ${gooColor} 68%, #00b832 100%)`,
+          background: `linear-gradient(180deg, #8bffad 0%, #37ff68 18%, ${gooColor} 62%, #00c832 100%)`,
           transform: pressed && !reducedMotion ? "scale(.965) translateY(1px)" : near && !reducedMotion ? "scale(1.012)" : "scale(1)",
           filter: near && !reducedMotion ? "brightness(1.18) saturate(1.12)" : "none",
           boxShadow: near && !reducedMotion
