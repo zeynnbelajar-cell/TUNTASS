@@ -14,6 +14,8 @@ import {
 import { supabase } from "../lib/supabase";
 import { isTuntasAdminUser } from "../lib/adminAccess";
 
+const PlushTile = React.lazy(() => import("./PlushTile"));
+
 const EVIDENCE_BUCKET = "report-evidence-private";
 const REPORT_FIELDS = "id, description, location, category, priority, summary, recommendation, status, created_at, latitude, longitude";
 const ALLOWED_TYPES = {
@@ -492,6 +494,8 @@ export default function VolunteerCenter({ user, onAdminDataChanged, onProfileUpd
     () => assignments.filter((item) => ["claimed", "proof_submitted"].includes(item.status)),
     [assignments]
   );
+  const profileAvatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "";
+  const profileInitial = (fullName || user?.email || "R").trim().charAt(0).toUpperCase();
 
   return (
     <section id="ruang-relawan" className="volunteer-center" aria-labelledby="volunteer-title" data-mask-reveal>
@@ -517,7 +521,28 @@ export default function VolunteerCenter({ user, onAdminDataChanged, onProfileUpd
       {!isAdmin && (
         <form id="profil-relawan" className="volunteer-profile-form volunteer-profile-expanded" onSubmit={saveProfile}>
           <div className="volunteer-profile-banner">
-            <span className="volunteer-profile-avatar">{(fullName || user?.email || "R").trim().charAt(0).toUpperCase()}</span>
+            <div className="volunteer-profile-avatar-stage" role={profileAvatarUrl ? "img" : undefined} aria-label={profileAvatarUrl ? `Foto profil ${fullName || "relawan"}` : undefined}>
+              {profileAvatarUrl ? (
+                <React.Suspense fallback={<span className="volunteer-profile-avatar">{profileInitial}</span>}>
+                  <PlushTile
+                    image={profileAvatarUrl}
+                    background="#260f14"
+                    furColor="#F3EDE4"
+                    scale={115}
+                    radius={48}
+                    puff={4.5}
+                    fur={{ density: 3.2, length: 4.4, lift: 3.2, frizz: 3.1, flow: "art" }}
+                    entrance={{ animate: true, delay: 0.1, duration: 1.25 }}
+                    response={{ reach: 4, strength: 3, parallax: 2.5 }}
+                    breeze={0}
+                    advanced={{ glow: 34, shadow: 42, hairWidth: 0.8, rimLight: 68 }}
+                    style={{ width: "100%", height: "100%" }}
+                  />
+                </React.Suspense>
+              ) : (
+                <span className="volunteer-profile-avatar">{profileInitial}</span>
+              )}
+            </div>
             <div><span className="step-label">PROFIL RELAWAN</span><h3>{profile ? "Profil saya" : "Buat profil relawan"}</h3><p>Informasi ini membantu warga dan admin mengenali kontribusimu.</p></div>
           </div>
           <div className="volunteer-profile-fields">
