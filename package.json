@@ -12,6 +12,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",
     "cesium": "^1.147.0",
+    "framer-motion": "^14.14.0",
     "lucide-react": "^0.468.0",
     "maplibre-gl": "6.18.0",
     "react": "^19.0.0",
