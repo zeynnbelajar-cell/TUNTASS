@@ -35,6 +35,7 @@ import { isTuntasAdminUser } from "./lib/adminAccess";
 const LocationPicker = React.lazy(() => import("./components/LocationPicker"));
 const AdminDashboard = React.lazy(() => import("./components/AdminDashboard"));
 const PlinthTally = React.lazy(() => import("./components/PlinthTally"));
+const CairnShade = React.lazy(() => import("./components/CairnShade"));
 
 const ATTACHMENT_BUCKET = "citizen-report-attachments";
 const ATTACHMENT_LIMIT = 10;
@@ -1486,6 +1487,7 @@ export default function App() {
           </p>
         </form>
 
+        <div className="ai-conversation-stack">
         <aside className="result-panel">
           <div className="result-top">
             <span className="step-label">LANGKAH 02</span>
@@ -1608,6 +1610,22 @@ export default function App() {
             </div>
           )}
         </aside>
+        <div className="ai-visual-card" role="img" aria-label="Animasi huruf TRUTH bertumpuk">
+          <React.Suspense fallback={<div className="ai-visual-loading" />}>
+            <CairnShade
+              text="TRUTH"
+              background="#000106"
+              color="#FFFFFF"
+              shadowColor="#5A5966"
+              depth={50}
+              size={556}
+              speed={26}
+              advanced={{ hover: 50, floatAmp: 12, bob: 11, vignette: 8 }}
+              style={{ width: "100%", height: "250px" }}
+            />
+          </React.Suspense>
+        </div>
+        </div>
       </section>
 
       {authReady && user && <VolunteerCenter user={user} onProfileUpdated={setVolunteerProfile} />}
