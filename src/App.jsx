@@ -33,6 +33,7 @@ import { isTuntasAdminUser } from "./lib/adminAccess";
 
 const LocationPicker = React.lazy(() => import("./components/LocationPicker"));
 const AdminDashboard = React.lazy(() => import("./components/AdminDashboard"));
+const PlinthTally = React.lazy(() => import("./components/PlinthTally"));
 
 const ATTACHMENT_BUCKET = "citizen-report-attachments";
 const ATTACHMENT_LIMIT = 10;
@@ -1220,11 +1221,31 @@ export default function App() {
           <span className="pulse" /> COMMUNITY ACTION PLATFORM
         </div>
         <div className="ai-shimmer-badge"><Sparkles size={13} /> TUNTAS AI <span>INTELLIGENCE LAYER</span></div>
-        <h1>
-          Keluhan warga,
-          <br />
-          <em>jadi aksi nyata.</em>
-        </h1>
+        <h1>Keluhan warga,</h1>
+        <div className="hero-plinth-wrap" role="img" aria-label="Jadi aksi nyata">
+          <React.Suspense fallback={<span className="hero-plinth-fallback">jadi aksi nyata.</span>}>
+            <PlinthTally
+              glyphs={[
+                { character: "JADI", from: "#201CF7", to: "#288CF5", rim: "#FD3001", lean: -37 },
+                { character: "AKSI", from: "#FB3E04", to: "#FBCD08", rim: "#2318F7", lean: 53 },
+                { character: "NYATA", from: "#20BFA5", to: "#75E7D4", rim: "#FDBB03", lean: -37 },
+              ]}
+              background="transparent"
+              font={{ fontFamily: '"Arial Black", "Helvetica Neue", Arial, sans-serif', fontWeight: 900 }}
+              stack="row"
+              spacing={3}
+              sparkles={16}
+              scale={100}
+              depth={5}
+              grain={5}
+              entrance={{ animate: true, delay: 0.15, stagger: 0.13 }}
+              parallax={6}
+              drift={1.2}
+              smoothing={5}
+              style={{ width: "100%", height: "100%" }}
+            />
+          </React.Suspense>
+        </div>
         <p className="hero-copy">
           Laporkan masalah di lingkunganmu. AI membantu memahami masalah dan
           menyarankan langkah awal untuk menanganinya.
