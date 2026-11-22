@@ -175,6 +175,7 @@ export default function App() {
   const [reportsError, setReportsError] = useState("");
   const [user, setUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
+  const [passwordRecoveryActive, setPasswordRecoveryActive] = useState(false);
   const [adminDashboardOpen, setAdminDashboardOpen] = useState(true);
   const isAdmin = isTuntasAdminUser(user);
 
@@ -526,8 +527,12 @@ export default function App() {
       setAuthReady(true);
     });
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       const nextUser = session?.user || null;
+      if (event === "PASSWORD_RECOVERY") {
+        setPasswordRecoveryActive(true);
+        setAdminDashboardOpen(false);
+      }
       setUser(nextUser);
       if (isTuntasAdminUser(nextUser)) setAdminDashboardOpen(true);
       setAuthReady(true);
@@ -929,7 +934,7 @@ export default function App() {
     );
   });
 
-  if (authReady && isAdmin && adminDashboardOpen) {
+  if (authReady && isAdmin && adminDashboardOpen && !passwordRecoveryActive) {
     return (
       <React.Suspense fallback={<main className="page-shell"><p role="status">Menyiapkan dashboard admin...</p></main>}>
         <AdminDashboard user={user} onExit={() => setAdminDashboardOpen(false)} />
@@ -979,7 +984,16 @@ export default function App() {
         </p>
       </section>
 
-      {authReady && <AuthPanel user={user} />}
+      {authReady && (
+        <AuthPanel
+          user={user}
+          passwordRecoveryActive={passwordRecoveryActive}
+          onPasswordRecoveryComplete={() => {
+            setPasswordRecoveryActive(false);
+            setAdminDashboardOpen(false);
+          }}
+        />
+      )}
 
       <section className="workspace" id="laporan" data-mask-reveal>
         <form className="report-card" onSubmit={submitReport}>

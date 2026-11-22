@@ -720,3 +720,15 @@ html {
 .auth-password-visibility:focus-visible{outline:2px solid #ec6a88;outline-offset:1px}
 .auth-password-visibility:disabled{opacity:.5;cursor:wait}
 @media(max-width:650px){.auth-password-visibility{right:3px;width:30px;height:30px}}
+
+.auth-recovery-link,.auth-recovery-back{
+  justify-self:start;border:0;background:transparent;padding:3px 0;color:#d8446c;
+  font:750 9px 'DM Sans',sans-serif;text-align:left;cursor:pointer;
+}
+.auth-recovery-link:hover,.auth-recovery-back:hover{text-decoration:underline;color:#ae2f56}
+.auth-recovery-back{margin-top:-3px;color:#77758a}
+.auth-recovery-link:focus-visible,.auth-recovery-back:focus-visible{
+  outline:2px solid #ec6a88;outline-offset:3px;border-radius:3px;
+}
+.auth-recovery-link:disabled,.auth-recovery-back:disabled{opacity:.55;cursor:wait}
+.auth-form-side.is-login .auth-form{max-height:100%;overflow-y:auto;overscroll-behavior:contain}

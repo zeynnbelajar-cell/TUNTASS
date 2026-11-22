@@ -5,7 +5,7 @@ import { isTuntasAdminUser, TUNTAS_ADMIN_EMAIL } from "../lib/adminAccess";
 
 const AUTH_SLIDE_DURATION_MS = 820;
 
-export default function AuthPanel({ user }) {
+export default function AuthPanel({ user, passwordRecoveryActive = false, onPasswordRecoveryComplete }) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState("register");
   const [copyMode, setCopyMode] = useState("register");
@@ -13,7 +13,9 @@ export default function AuthPanel({ user }) {
   const transitionTimer = useRef(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordFlow, setPasswordFlow] = useState("none");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -24,11 +26,23 @@ export default function AuthPanel({ user }) {
     }
   }, []);
   useEffect(() => {
-    if (!open || busy || isSliding || mode !== "register") return;
+    if (!passwordRecoveryActive) return;
+    setOpen(true);
+    setMode("login");
+    setCopyMode("login");
+    setPasswordFlow("update");
+    setPassword("");
+    setConfirmPassword("");
+    setError("");
+    setMessage("Tautan pemulihan terverifikasi. Buat kata sandi baru untuk akunmu.");
+  }, [passwordRecoveryActive]);
+
+  useEffect(() => {
+    if (!open || busy || isSliding || mode !== "register" || passwordFlow !== "none") return;
     if (email.trim().toLowerCase() === TUNTAS_ADMIN_EMAIL) {
       changeMode("login");
     }
-  }, [email, open, busy, isSliding, mode]);
+  }, [email, open, busy, isSliding, mode, passwordFlow]);
 
 
   function changeMode(nextMode) {
@@ -36,6 +50,8 @@ export default function AuthPanel({ user }) {
 
     setError("");
     setMessage("");
+    setPasswordFlow("none");
+    setConfirmPassword("");
 
     const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     setMode(nextMode);
@@ -112,13 +128,106 @@ export default function AuthPanel({ user }) {
     }
   }
 
+  async function requestPasswordReset(event) {
+    event.preventDefault();
+    setError("");
+    setMessage("");
+
+    if (!supabase) {
+      setError("Supabase belum dikonfigurasi. Periksa konfigurasi aplikasi.");
+      return;
+    }
+    if (!email.trim()) {
+      setError("Masukkan alamat email akunmu terlebih dahulu.");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const redirectTo = new URL(import.meta.env.BASE_URL, window.location.origin).href;
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo,
+      });
+      if (resetError) throw resetError;
+      setMessage("Jika akun dengan email tersebut tersedia, tautan pemulihan akan dikirim. Periksa kotak masuk dan folder spam.");
+    } catch (resetError) {
+      console.error("Permintaan pemulihan kata sandi gagal:", resetError);
+      const detail = String(resetError.message || "").toLowerCase();
+      setError(detail.includes("redirect") || detail.includes("url")
+        ? "Alamat pengalihan belum diizinkan di pengaturan Supabase Auth. Admin perlu menambahkan URL situs TUNTAS."
+        : resetError.message || "Tautan pemulihan gagal dikirim. Coba lagi beberapa saat.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function updateRecoveredPassword(event) {
+    event.preventDefault();
+    setError("");
+    setMessage("");
+
+    if (!supabase) {
+      setError("Supabase belum dikonfigurasi. Periksa konfigurasi aplikasi.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Kata sandi baru minimal 8 karakter.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Konfirmasi kata sandi belum cocok.");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({ password });
+      if (updateError) throw updateError;
+
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) console.warn("Kata sandi berubah, tetapi sesi belum keluar:", signOutError);
+
+      setPassword("");
+      setConfirmPassword("");
+      setPasswordFlow("none");
+      setMessage("Kata sandi berhasil diperbarui. Silakan masuk menggunakan kata sandi baru.");
+      onPasswordRecoveryComplete?.();
+    } catch (updateError) {
+      console.error("Pembaruan kata sandi gagal:", updateError);
+      setError(updateError.message || "Kata sandi gagal diperbarui. Buka kembali tautan pemulihan terbaru.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function openPasswordReset() {
+    setPasswordFlow("request");
+    setMode("login");
+    setCopyMode("login");
+    setPassword("");
+    setConfirmPassword("");
+    setError("");
+    setMessage("");
+    setOpen(true);
+  }
+
+  function returnToLogin() {
+    setPasswordFlow("none");
+    setPassword("");
+    setConfirmPassword("");
+    setError("");
+    setMessage("");
+    setMode("login");
+    setCopyMode("login");
+  }
+
   async function signOut() {
     if (!supabase) return;
     const { error: signOutError } = await supabase.auth.signOut();
     if (signOutError) setError(signOutError.message);
   }
 
-  if (user) {
+  if (user && !passwordRecoveryActive) {
     return (
       <div className="auth-account" aria-label="Akun aktif" data-mask-reveal>
         <span className="auth-avatar"><UserRound size={16} /></span>
@@ -136,6 +245,8 @@ export default function AuthPanel({ user }) {
 
   const isLogin = mode === "login";
   const isCopyLogin = copyMode === "login";
+  const isPasswordResetRequest = passwordFlow === "request";
+  const isPasswordResetUpdate = passwordFlow === "update";
 
   return (
     <section className="auth-entry" aria-label="Akses relawan" data-mask-reveal>
@@ -151,7 +262,7 @@ export default function AuthPanel({ user }) {
           className={`auth-toggle ${open ? "is-open" : ""}`}
           aria-expanded={open}
           aria-controls="tuntas-auth-dropdown"
-          disabled={isSliding}
+          disabled={isSliding || passwordRecoveryActive}
           onClick={() => {
             setOpen((value) => !value);
             setError("");
@@ -174,76 +285,165 @@ export default function AuthPanel({ user }) {
               <button
                 type="button"
                 className={`auth-visual ${isLogin ? "is-login" : "is-register"}`}
-                aria-label={isCopyLogin ? "Geser panel merah untuk daftar" : "Geser panel merah untuk masuk"}
+                aria-label={passwordFlow === "none"
+                  ? (isCopyLogin ? "Geser panel merah untuk daftar" : "Geser panel merah untuk masuk")
+                  : "Panel pemulihan kata sandi"}
                 onClick={() => changeMode(isLogin ? "register" : "login")}
-                disabled={busy || isSliding}
+                disabled={busy || isSliding || passwordFlow !== "none"}
               >
                 <div className="auth-visual-copy">
-                  <p>{isCopyLogin ? "READY TO MAKE A DIFFERENCE?" : "YOUR COMMUNITY IS WAITING"}</p>
-                  <h3>{isCopyLogin ? "Hello, Friend!" : "Welcome Back!"}</h3>
+                  <p>
+                    {isPasswordResetRequest
+                      ? "ACCOUNT RECOVERY"
+                      : isPasswordResetUpdate
+                        ? "SECURE YOUR ACCOUNT"
+                        : isCopyLogin
+                          ? "READY TO MAKE A DIFFERENCE?"
+                          : "YOUR COMMUNITY IS WAITING"}
+                  </p>
+                  <h3>
+                    {isPasswordResetRequest
+                      ? "Forgot Password?"
+                      : isPasswordResetUpdate
+                        ? "Welcome Back!"
+                        : isCopyLogin
+                          ? "Hello, Friend!"
+                          : "Welcome Back!"}
+                  </h3>
                   <span>
-                    {isCopyLogin
-                      ? "Bergabunglah dan mulai perjalanan membuat perubahan bersama."
-                      : "Kami senang melihatmu kembali. Masuk untuk melanjutkan aksi baikmu bersama TUNTAS."}
+                    {isPasswordResetRequest
+                      ? "Kami akan membantu mengirim tautan untuk memulihkan akunmu."
+                      : isPasswordResetUpdate
+                        ? "Atur kata sandi baru agar akunmu kembali aman."
+                        : isCopyLogin
+                          ? "Bergabunglah dan mulai perjalanan membuat perubahan bersama."
+                          : "Kami senang melihatmu kembali. Masuk untuk melanjutkan aksi baikmu bersama TUNTAS."}
                   </span>
                 </div>
-                <span className="auth-mode-cta">{isCopyLogin ? "Sign Up" : "Sign In"}</span>
+                {passwordFlow === "none" && <span className="auth-mode-cta">{isCopyLogin ? "Sign Up" : "Sign In"}</span>}
               </button>
 
               <div className={`auth-form-side ${isLogin ? "is-login" : "is-register"}`}>
                 <div className="auth-form-heading">
-                  <span>{isCopyLogin ? "WELCOME BACK" : "GET STARTED"}</span>
-                  <h3>{isCopyLogin ? "Welcome Back" : "Create Account"}</h3>
-                  <p>{isCopyLogin ? "Masuk untuk melanjutkan kontribusimu." : "Buat akun relawan dan mulai ambil bagian."}</p>
+                  <span>
+                    {isPasswordResetRequest ? "ACCOUNT RECOVERY" : isPasswordResetUpdate ? "SECURE YOUR ACCOUNT" : isCopyLogin ? "WELCOME BACK" : "GET STARTED"}
+                  </span>
+                  <h3>
+                    {isPasswordResetRequest ? "Lupa Kata Sandi?" : isPasswordResetUpdate ? "Buat Kata Sandi Baru" : isCopyLogin ? "Welcome Back" : "Create Account"}
+                  </h3>
+                  <p>
+                    {isPasswordResetRequest
+                      ? "Masukkan email akunmu. Kami akan mengirim tautan pemulihan jika akun tersedia."
+                      : isPasswordResetUpdate
+                        ? "Pilih kata sandi baru minimal 8 karakter untuk mengamankan akun TUNTAS."
+                        : isCopyLogin
+                          ? "Masuk untuk melanjutkan kontribusimu."
+                          : "Buat akun relawan dan mulai ambil bagian."}
+                  </p>
                 </div>
 
-                <form className="auth-form" onSubmit={submit}>
-                  <label htmlFor="auth-email">Alamat email</label>
-                  <input
-                    id="auth-email"
-                    type="email"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    placeholder="nama@email.com"
-                    disabled={busy || isSliding}
-                    required
-                  />
+                <form
+                  className="auth-form"
+                  onSubmit={isPasswordResetRequest ? requestPasswordReset : isPasswordResetUpdate ? updateRecoveredPassword : submit}
+                >
+                  {!isPasswordResetUpdate && (
+                    <>
+                      <label htmlFor="auth-email">Alamat email</label>
+                      <input
+                        id="auth-email"
+                        type="email"
+                        autoComplete="email"
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        placeholder="nama@email.com"
+                        disabled={busy || isSliding}
+                        required
+                      />
+                    </>
+                  )}
 
-                  <label htmlFor="auth-password">Kata sandi</label>
-                  <div className="auth-password-field">
-                    <input
-                      id="auth-password"
-                      type={showPassword ? "text" : "password"}
-                      autoComplete={isLogin ? "current-password" : "new-password"}
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      minLength={8}
-                      placeholder="Minimal 8 karakter"
-                      disabled={busy || isSliding}
-                      required
-                    />
-                    <button
-                      type="button"
-                      className="auth-password-visibility"
-                      aria-label={showPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
-                      aria-pressed={showPassword}
-                      onClick={() => setShowPassword((visible) => !visible)}
-                      disabled={busy || isSliding}
-                    >
-                      {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  {!isPasswordResetRequest && (
+                    <>
+                      <label htmlFor="auth-password">{isPasswordResetUpdate ? "Kata sandi baru" : "Kata sandi"}</label>
+                      <div className="auth-password-field">
+                        <input
+                          id="auth-password"
+                          type={showPassword ? "text" : "password"}
+                          autoComplete={isPasswordResetUpdate || !isLogin ? "new-password" : "current-password"}
+                          value={password}
+                          onChange={(event) => setPassword(event.target.value)}
+                          minLength={8}
+                          placeholder="Minimal 8 karakter"
+                          disabled={busy || isSliding}
+                          required
+                        />
+                        <button
+                          type="button"
+                          className="auth-password-visibility"
+                          aria-label={showPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"}
+                          aria-pressed={showPassword}
+                          onClick={() => setShowPassword((visible) => !visible)}
+                          disabled={busy || isSliding}
+                        >
+                          {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  {isPasswordResetUpdate && (
+                    <>
+                      <label htmlFor="auth-confirm-password">Ulangi kata sandi baru</label>
+                      <div className="auth-password-field">
+                        <input
+                          id="auth-confirm-password"
+                          type={showPassword ? "text" : "password"}
+                          autoComplete="new-password"
+                          value={confirmPassword}
+                          onChange={(event) => setConfirmPassword(event.target.value)}
+                          minLength={8}
+                          placeholder="Ketik ulang kata sandi"
+                          disabled={busy || isSliding}
+                          required
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {isLogin && passwordFlow === "none" && (
+                    <button type="button" className="auth-recovery-link" onClick={openPasswordReset} disabled={busy || isSliding}>
+                      Lupa kata sandi?
                     </button>
-                  </div>
+                  )}
 
                   {error && <p className="auth-feedback auth-error" role="alert">{error}</p>}
                   {message && <p className="auth-feedback auth-success" role="status">{message}</p>}
 
                   <button className="auth-submit" disabled={busy || isSliding}>
-                    {busy ? "Memproses..." : isCopyLogin ? "Masuk ke akun" : "Buat akun relawan"}
+                    {busy
+                      ? "Memproses..."
+                      : isPasswordResetRequest
+                        ? "Kirim tautan pemulihan"
+                        : isPasswordResetUpdate
+                          ? "Simpan kata sandi baru"
+                          : isCopyLogin
+                            ? "Masuk ke akun"
+                            : "Buat akun relawan"}
                     {!busy && <ArrowUpRight size={16} />}
                   </button>
+
+                  {passwordFlow !== "none" && (
+                    <button type="button" className="auth-recovery-back" onClick={returnToLogin} disabled={busy}>
+                      Kembali ke login
+                    </button>
+                  )}
+
                   <small className="auth-footnote">
-                    Gunakan email aktif. Konfirmasi email mungkin diperlukan sebelum masuk.
+                    {isPasswordResetRequest
+                      ? "Periksa kotak masuk dan folder spam setelah meminta tautan."
+                      : isPasswordResetUpdate
+                        ? "Gunakan kata sandi unik yang tidak dipakai di situs lain."
+                        : "Gunakan email aktif. Konfirmasi email mungkin diperlukan sebelum masuk."}
                   </small>
                 </form>
               </div>
