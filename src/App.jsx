@@ -29,6 +29,7 @@ import { isNetworkUnavailable } from "./lib/networkStatus";
 
 import AuthPanel from "./components/AuthPanel";
 import VolunteerCenter from "./components/VolunteerCenter";
+import VenomButton from "./components/VenomButton";
 
 import { isTuntasAdminUser } from "./lib/adminAccess";
 
@@ -1470,17 +1471,15 @@ export default function App() {
             </div>
           )}
 
-          <button className="submit-button" disabled={loading || locationResolving}>
-            {loading ? (
-              <>
-                <span className="spinner" /> TUNTAS AI sedang menjawab...
-              </>
-            ) : (
-              <>
-                <Sparkles size={18} /> Kirim ke TUNTAS AI <Send size={16} />
-              </>
-            )}
-          </button>
+          <VenomButton
+            type="submit"
+            label={loading ? "TUNTAS AI SEDANG MENJAWAB..." : "KIRIM KE TUNTAS AI"}
+            disabled={loading || locationResolving}
+            gooColor="#07111B"
+            textColor="#F4FFFF"
+            size={58}
+            style={{ minHeight: 74, padding: "0 4px" }}
+          />
           <p className="privacy-note">
             <ShieldCheck size={15} /> Analisis AI adalah rekomendasi awal dan
             perlu diverifikasi manusia.

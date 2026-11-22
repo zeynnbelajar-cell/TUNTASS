@@ -1244,3 +1244,12 @@ html {
   .workspace > .ai-conversation-stack{width:100%;}
   .ai-visual-card{height:225px;border-radius:15px;}
 }
+
+
+/* Venom interaction buttons used for sending a message and claiming a task. */
+.venom-button { white-space: nowrap; }
+.available-task-venom { width: 190px; max-width: 100%; flex: 0 0 190px; }
+.available-task-venom > div { min-height: 58px !important; }
+@media (max-width: 560px) {
+  .available-task-venom { width: 100%; flex: 1 1 100%; }
+}

@@ -12,6 +12,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import VenomButton from "./VenomButton";
 import { isTuntasAdminUser } from "../lib/adminAccess";
 
 const PlushTile = React.lazy(() => import("./PlushTile"));
@@ -244,6 +245,7 @@ export default function VolunteerCenter({ user, onAdminDataChanged, onProfileUpd
   const [savingProfile, setSavingProfile] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [claimingReportId, setClaimingReportId] = useState(null);
 
   const loadData = useCallback(async () => {
     if (!supabase || !user?.id) return;
@@ -455,8 +457,10 @@ export default function VolunteerCenter({ user, onAdminDataChanged, onProfileUpd
   }
 
   async function claimReport(reportId) {
+    if (claimingReportId) return;
     setError("");
     setMessage("");
+    setClaimingReportId(reportId);
     try {
       const { error: claimError } = await supabase.rpc("claim_report", { p_report_id: reportId });
       if (claimError) throw claimError;
@@ -464,6 +468,8 @@ export default function VolunteerCenter({ user, onAdminDataChanged, onProfileUpd
       await loadData();
     } catch (claimError) {
       setError(claimError.message || "Tugas gagal diambil.");
+    } finally {
+      setClaimingReportId(null);
     }
   }
 
@@ -555,7 +561,17 @@ export default function VolunteerCenter({ user, onAdminDataChanged, onProfileUpd
                     {report.summary && <small>{report.summary}</small>}
                     <div className="available-task-bottom">
                       <span>{report.priority || "Prioritas belum ditentukan"}</span>
-                      <button type="button" className="volunteer-primary" onClick={() => claimReport(report.id)}><ClipboardList size={15} /> Ambil tugas</button>
+                      <div className="available-task-venom">
+                        <VenomButton
+                          label={claimingReportId === report.id ? "MEMPROSES..." : "AMBIL TUGAS"}
+                          onClick={() => claimReport(report.id)}
+                          disabled={claimingReportId !== null}
+                          gooColor="#07111B"
+                          textColor="#F4FFFF"
+                          size={48}
+                          style={{ minHeight: 58, padding: 0 }}
+                        />
+                      </div>
                     </div>
                   </article>
                 ))}
