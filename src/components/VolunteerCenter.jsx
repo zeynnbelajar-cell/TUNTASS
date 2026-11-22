@@ -12,7 +12,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
-import VenomButton from "./VenomButton";
+import MagneticButton from "./MagneticButton";
 import { isTuntasAdminUser } from "../lib/adminAccess";
 
 const PlushTile = React.lazy(() => import("./PlushTile"));
@@ -562,14 +562,21 @@ export default function VolunteerCenter({ user, onAdminDataChanged, onProfileUpd
                     <div className="available-task-bottom">
                       <span>{report.priority || "Prioritas belum ditentukan"}</span>
                       <div className="available-task-venom">
-                        <VenomButton
+                        <MagneticButton
                           label={claimingReportId === report.id ? "MEMPROSES..." : "AMBIL TUGAS"}
                           onClick={() => claimReport(report.id)}
                           disabled={claimingReportId !== null}
-                          gooColor="#07111B"
-                          textColor="#F4FFFF"
-                          size={48}
-                          style={{ minHeight: 58, padding: 0 }}
+                          fill="#FFFFFF"
+                          textColor="#07111B"
+                          sweepColor="#07111B"
+                          sweepTextColor="#FFFFFF"
+                          magnet={10}
+                          paddingX={28}
+                          paddingY={17}
+                          radius={999}
+                          border
+                          borderOptions={{ color: "rgba(7,17,27,0.18)", width: 1 }}
+                          style={{ minHeight: 58, fontWeight: 800, letterSpacing: "0.06em", fontSize: 12 }}
                         />
                       </div>
                     </div>
