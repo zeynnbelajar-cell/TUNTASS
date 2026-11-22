@@ -16,7 +16,7 @@ import {
   FileVideo,
   FileText,
   X,
-  Camera,
+  Pencil,
   Award,
   CalendarDays,
   UserRound,
@@ -199,7 +199,6 @@ export default function App() {
   const [volunteerPortfolioLoading, setVolunteerPortfolioLoading] = useState(false);
   const [volunteerPortfolioTasks, setVolunteerPortfolioTasks] = useState([]);
   const [volunteerPortfolioReports, setVolunteerPortfolioReports] = useState({});
-  const [volunteerAvatarUploading, setVolunteerAvatarUploading] = useState(false);
   const [volunteerPortfolioError, setVolunteerPortfolioError] = useState("");
   const isAdmin = isTuntasAdminUser(user);
   const volunteerDisplayName = volunteerProfile?.full_name?.trim() || getAccountFirstName(user);
@@ -633,9 +632,9 @@ export default function App() {
         }
         reservations.push(signed.attachment_id);
 
-        setUploadProgress("Mengunggah " + (index + 1) + "/" + filesToUpload.length + " · " + file.name + " · 0%");
+        setUploadProgress("Mengunggah " + (index + 1) + "/" + filesToUpload.length + " Â· " + file.name + " Â· 0%");
         await uploadLargeFile(file, signed.path, signed.token, contentType, (percentage) => {
-          setUploadProgress("Mengunggah " + (index + 1) + "/" + filesToUpload.length + " · " + file.name + " · " + percentage + "%");
+          setUploadProgress("Mengunggah " + (index + 1) + "/" + filesToUpload.length + " Â· " + file.name + " Â· " + percentage + "%");
         });
 
         const { error: completeError } = await supabase.functions.invoke(
@@ -760,9 +759,9 @@ export default function App() {
         throw new Error("Server tidak menyiapkan file pengganti.");
       }
 
-      setUploadProgress("Mengunggah file pengganti " + file.name + " · 0%");
+      setUploadProgress("Mengunggah file pengganti " + file.name + " Â· 0%");
       await uploadLargeFile(file, staging.path, staging.token, contentType, (percentage) => {
-        setUploadProgress("Mengunggah file pengganti " + file.name + " · " + percentage + "%");
+        setUploadProgress("Mengunggah file pengganti " + file.name + " Â· " + percentage + "%");
       });
 
       const { error: completeError } = await supabase.functions.invoke(
@@ -822,7 +821,7 @@ export default function App() {
     const cleanLocation = location.trim();
 
     if (cleanDescription.length < 1 || cleanDescription.length > 1500) {
-      setError("Pesan harus terdiri dari 1–1500 karakter.");
+      setError("Pesan harus terdiri dari 1â€“1500 karakter.");
       return;
     }
     if (cleanLocation && locationResolving) {
@@ -1010,44 +1009,6 @@ export default function App() {
     }
   }
 
-  async function handleVolunteerAvatarUpload(event) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-    if (!user?.id || !volunteerProfile?.user_id) {
-      setVolunteerPortfolioError("Lengkapi profil relawan terlebih dahulu sebelum memasang foto.");
-      return;
-    }
-    const extensions = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
-    if (!extensions[file.type] || file.size > 3 * 1024 * 1024) {
-      setVolunteerPortfolioError("Gunakan foto JPG, PNG, atau WEBP dengan ukuran maksimal 3 MB.");
-      return;
-    }
-    setVolunteerAvatarUploading(true);
-    setVolunteerPortfolioError("");
-    try {
-      const path = `${user.id}/avatar.${extensions[file.type]}`;
-      const { error: uploadError } = await supabase.storage.from("volunteer-avatars").upload(path, file, {
-        upsert: true, cacheControl: "3600", contentType: file.type,
-      });
-      if (uploadError) throw uploadError;
-      const { data: publicData } = supabase.storage.from("volunteer-avatars").getPublicUrl(path);
-      const avatarUrl = `${publicData.publicUrl}?v=${Date.now()}`;
-      const { data, error: updateError } = await supabase
-        .from("volunteer_profiles")
-        .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
-        .eq("user_id", user.id)
-        .select("user_id, full_name, phone, bio, skills, area, avatar_url, created_at, updated_at")
-        .single();
-      if (updateError) throw updateError;
-      setVolunteerProfile(data);
-    } catch (avatarError) {
-      setVolunteerPortfolioError(avatarError.message || "Foto profil gagal disimpan.");
-    } finally {
-      setVolunteerAvatarUploading(false);
-    }
-  }
-
   const communityPhotos = reports.flatMap((report) => {
     const complaintRows = complaintsByReport[report.id] || [];
     return complaintRows.flatMap((complaint) =>
@@ -1145,11 +1106,21 @@ export default function App() {
                 </div>
               </div>
               {volunteerProfile?.user_id && (
-                <label className="volunteer-portfolio-photo-action">
-                  <Camera size={14} />
-                  <span>{volunteerAvatarUploading ? "Mengunggah..." : "Ganti foto"}</span>
-                  <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleVolunteerAvatarUpload} disabled={volunteerAvatarUploading} />
-                </label>
+                <button
+                  type="button"
+                  className="volunteer-portfolio-photo-action"
+                  onClick={() => {
+                    setVolunteerPortfolioOpen(false);
+                    window.setTimeout(() => {
+                      const profileForm = document.getElementById("profil-relawan");
+                      profileForm?.scrollIntoView({ behavior: "smooth", block: "center" });
+                      profileForm?.querySelector("input")?.focus({ preventScroll: true });
+                    }, 120);
+                  }}
+                >
+                  <Pencil size={14} />
+                  <span>Edit profil</span>
+                </button>
               )}
             </div>
 
@@ -1198,7 +1169,7 @@ export default function App() {
                           <article className="volunteer-portfolio-task" key={task.id}>
                             <span className="volunteer-portfolio-task-icon"><ClipboardList size={15} /></span>
                             <div>
-                              <small>{report?.category || "LAPORAN TUNTAS"} · {formatDate(task.claimed_at || task.created_at)}</small>
+                              <small>{report?.category || "LAPORAN TUNTAS"} Â· {formatDate(task.claimed_at || task.created_at)}</small>
                               <strong>{report?.description || "Detail laporan tidak tersedia"}</strong>
                               <p>{report?.location || "Lokasi tidak tersedia"}</p>
                               {task.review_note && <p className="volunteer-portfolio-review-note">Catatan admin: {task.review_note}</p>}
@@ -1350,7 +1321,7 @@ export default function App() {
                     )}
                     <div className="attachment-preview-meta">
                       <strong title={preview.file.name}>{preview.file.name}</strong>
-                      <small>{attachmentLabel(getAttachmentType(preview.file) || "")} · {formatFileSize(preview.file.size)}</small>
+                      <small>{attachmentLabel(getAttachmentType(preview.file) || "")} Â· {formatFileSize(preview.file.size)}</small>
                     </div>
                     <button
                       type="button"
@@ -1482,10 +1453,10 @@ export default function App() {
                     ID laporan utama: {savedReport.id}
                     <br />Jumlah keluhan dalam laporan: {savedReport.complaint_count}
                     {savedReport.is_duplicate && savedReport.distance_meters !== null
-                      ? ` · Jarak dari laporan utama: ${Number(savedReport.distance_meters).toFixed(1)} meter`
+                      ? ` Â· Jarak dari laporan utama: ${Number(savedReport.distance_meters).toFixed(1)} meter`
                       : ""}
                     {savedReport.duplicate_check === "skipped_no_gps"
-                      ? " · Deteksi duplikat dilewati karena GPS tidak tersedia."
+                      ? " Â· Deteksi duplikat dilewati karena GPS tidak tersedia."
                       : ""}
                   </small>
                 </div>
@@ -1626,8 +1597,8 @@ export default function App() {
                                 <p>{complaint.description}</p>
                                 <small>
                                   {complaint.is_initial ? "Keluhan awal" : "Keluhan tambahan"}
-                                  {" · "}{formatDate(complaint.created_at)}
-                                  {complaint.location ? ` · ${complaint.location}` : ""}
+                                  {" Â· "}{formatDate(complaint.created_at)}
+                                  {complaint.location ? ` Â· ${complaint.location}` : ""}
                                 </small>
                               </li>
                             ))}
@@ -1645,7 +1616,7 @@ export default function App() {
                       if (!complaintAttachments.length) return null;
                         return (
                         <div className="report-attachment-group" key={complaint.id}>
-                          <small>{complaint.is_initial ? "Keluhan awal" : "Keluhan tambahan"} · {formatDate(complaint.created_at)}</small>
+                          <small>{complaint.is_initial ? "Keluhan awal" : "Keluhan tambahan"} Â· {formatDate(complaint.created_at)}</small>
                           <div className="report-attachment-list">
                             {complaintAttachments.map((item) => (
                               <div className="report-attachment-item" key={item.id}>
@@ -1665,7 +1636,7 @@ export default function App() {
                                 )}
                                 <div className="report-attachment-details">
                                   <strong>{item.file_name}</strong>
-                                  <small>{formatFileSize(Number(item.size_bytes))} · {attachmentLabel(item.content_type)}</small>
+                                  <small>{formatFileSize(Number(item.size_bytes))} Â· {attachmentLabel(item.content_type)}</small>
                                   {item.signedUrl && (
                                     <a href={item.signedUrl} target="_blank" rel="noreferrer" download={item.file_name}>
                                       {item.content_type === "application/pdf" ? "Buka PDF" : "Unduh file"}
@@ -1714,7 +1685,7 @@ export default function App() {
       </section>
 
       <footer>
-        <span>TUNTAS © 2026</span>
+        <span>TUNTAS Â© 2026</span>
         <span>Teknologi untuk lingkungan yang lebih baik.</span>
       </footer>
     </main>
