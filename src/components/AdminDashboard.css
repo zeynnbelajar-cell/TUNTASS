@@ -864,3 +864,11 @@
 .volunteer-profile-fields textarea { resize: vertical; min-height: 82px; grid-column: 1 / -1; }
 .volunteer-profile-fields label[for="volunteer-bio"] { grid-column: 1 / -1; }
 @media (max-width: 600px) { .volunteer-profile-expanded { padding: 16px; } .volunteer-profile-fields { grid-template-columns: 1fr; } }
+
+
+/* Volunteer profile photos */
+.admin-owner-avatar-image { display: block; object-fit: cover; border: 1px solid rgba(143, 230, 220, .42); }
+.admin-portfolio-avatar-image { display: block; object-fit: cover; border-radius: 25px; }
+@media (max-width: 760px) {
+  .admin-portfolio-avatar-image { border-radius: 19px; }
+}

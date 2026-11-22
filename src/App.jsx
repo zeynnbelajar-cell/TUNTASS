@@ -16,6 +16,12 @@ import {
   FileVideo,
   FileText,
   X,
+  Camera,
+  Award,
+  CalendarDays,
+  UserRound,
+  Phone,
+  ClipboardList,
 } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "./lib/supabase";
 import { isNetworkUnavailable } from "./lib/networkStatus";
@@ -105,6 +111,16 @@ function formatDate(value) {
   }).format(date);
 }
 
+function getAccountFirstName(account) {
+  const candidate = account?.user_metadata?.full_name || account?.user_metadata?.name || account?.user_metadata?.display_name || account?.email?.split("@")[0] || "Relawan";
+  return String(candidate).replace(/[._-]+/g, " ").trim().split(" ").find(Boolean) || "Relawan";
+}
+
+function volunteerAssignmentLabel(status) {
+  const labels = { claimed: "Sedang dikerjakan", proof_submitted: "Menunggu verifikasi", verified: "Selesai diverifikasi", rejected: "Perlu perbaikan", cancelled: "Dilepas relawan" };
+  return labels[status] || status || "Status belum tersedia";
+}
+
 function priorityClass(priority) {
   const value = String(priority || "").toLowerCase();
   if (/kritis|darurat|sangat tinggi|tinggi|segera|mendesak/.test(value)) return "tinggi";
@@ -177,7 +193,52 @@ export default function App() {
   const [authReady, setAuthReady] = useState(false);
   const [passwordRecoveryActive, setPasswordRecoveryActive] = useState(false);
   const [adminDashboardOpen, setAdminDashboardOpen] = useState(true);
+  const [volunteerProfile, setVolunteerProfile] = useState(null);
+  const [volunteerPortfolioOpen, setVolunteerPortfolioOpen] = useState(false);
+  const [volunteerPortfolioLoading, setVolunteerPortfolioLoading] = useState(false);
+  const [volunteerPortfolioTasks, setVolunteerPortfolioTasks] = useState([]);
+  const [volunteerPortfolioReports, setVolunteerPortfolioReports] = useState({});
+  const [volunteerAvatarUploading, setVolunteerAvatarUploading] = useState(false);
+  const [volunteerPortfolioError, setVolunteerPortfolioError] = useState("");
   const isAdmin = isTuntasAdminUser(user);
+  const volunteerDisplayName = volunteerProfile?.full_name?.trim() || getAccountFirstName(user);
+  const volunteerAvatarUrl = volunteerProfile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "";
+
+  useEffect(() => {
+    if (!authReady || !user?.id || isAdmin || !supabase) {
+      setVolunteerProfile(null);
+      return undefined;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data, error: profileError } = await supabase
+        .from("volunteer_profiles")
+        .select("user_id, full_name, phone, bio, skills, area, avatar_url, created_at, updated_at")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      if (profileError) {
+        console.warn("Profil relawan belum dapat dimuat:", profileError);
+        return;
+      }
+      setVolunteerProfile(data || null);
+    })();
+    return () => { cancelled = true; };
+  }, [authReady, user?.id, isAdmin]);
+
+  useEffect(() => {
+    if (!volunteerPortfolioOpen) return undefined;
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setVolunteerPortfolioOpen(false);
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [volunteerPortfolioOpen]);
 
   useEffect(() => {
     const previews = attachmentFiles.map((file) => ({
@@ -914,6 +975,78 @@ export default function App() {
     }
   }
 
+  async function openVolunteerPortfolio() {
+    if (!user?.id) return;
+    setVolunteerPortfolioOpen(true);
+    setVolunteerPortfolioLoading(true);
+    setVolunteerPortfolioError("");
+    try {
+      const [profileResult, assignmentResult] = await Promise.all([
+        supabase.from("volunteer_profiles").select("user_id, full_name, phone, bio, skills, area, avatar_url, created_at, updated_at").eq("user_id", user.id).maybeSingle(),
+        supabase.from("report_assignments").select("id, report_id, status, claimed_at, submitted_at, reviewed_at, review_note, created_at").eq("volunteer_id", user.id).order("created_at", { ascending: false }).limit(100),
+      ]);
+      if (profileResult.error) throw profileResult.error;
+      if (assignmentResult.error) throw assignmentResult.error;
+      const assignments = assignmentResult.data || [];
+      const reportIds = [...new Set(assignments.map((item) => item.report_id).filter(Boolean))];
+      let reportMap = {};
+      if (reportIds.length) {
+        const { data: reportRows, error: reportError } = await supabase
+          .from("reports")
+          .select("id, description, category, location, status")
+          .in("id", reportIds);
+        if (reportError) throw reportError;
+        reportMap = Object.fromEntries((reportRows || []).map((report) => [report.id, report]));
+      }
+      setVolunteerProfile(profileResult.data || null);
+      setVolunteerPortfolioTasks(assignments);
+      setVolunteerPortfolioReports(reportMap);
+    } catch (portfolioError) {
+      console.error("Portofolio relawan gagal dimuat:", portfolioError);
+      setVolunteerPortfolioError(portfolioError.message || "Portofolio belum dapat dimuat. Coba segarkan halaman.");
+    } finally {
+      setVolunteerPortfolioLoading(false);
+    }
+  }
+
+  async function handleVolunteerAvatarUpload(event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!user?.id || !volunteerProfile?.user_id) {
+      setVolunteerPortfolioError("Lengkapi profil relawan terlebih dahulu sebelum memasang foto.");
+      return;
+    }
+    const extensions = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+    if (!extensions[file.type] || file.size > 3 * 1024 * 1024) {
+      setVolunteerPortfolioError("Gunakan foto JPG, PNG, atau WEBP dengan ukuran maksimal 3 MB.");
+      return;
+    }
+    setVolunteerAvatarUploading(true);
+    setVolunteerPortfolioError("");
+    try {
+      const path = `${user.id}/avatar.${extensions[file.type]}`;
+      const { error: uploadError } = await supabase.storage.from("volunteer-avatars").upload(path, file, {
+        upsert: true, cacheControl: "3600", contentType: file.type,
+      });
+      if (uploadError) throw uploadError;
+      const { data: publicData } = supabase.storage.from("volunteer-avatars").getPublicUrl(path);
+      const avatarUrl = `${publicData.publicUrl}?v=${Date.now()}`;
+      const { data, error: updateError } = await supabase
+        .from("volunteer_profiles")
+        .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
+        .eq("user_id", user.id)
+        .select("user_id, full_name, phone, bio, skills, area, avatar_url, created_at, updated_at")
+        .single();
+      if (updateError) throw updateError;
+      setVolunteerProfile(data);
+    } catch (avatarError) {
+      setVolunteerPortfolioError(avatarError.message || "Foto profil gagal disimpan.");
+    } finally {
+      setVolunteerAvatarUploading(false);
+    }
+  }
+
   const communityPhotos = reports.flatMap((report) => {
     const complaintRows = complaintsByReport[report.id] || [];
     return complaintRows.flatMap((complaint) =>
@@ -945,10 +1078,27 @@ export default function App() {
   return (
     <main className="page-shell">
       <nav className="topbar" aria-label="Navigasi utama" data-mask-reveal>
-        <a className="brand" href="#beranda">
-          <span className="brand-mark">T</span>
-          <span>TUNTAS</span>
-        </a>
+        {authReady && user && !isAdmin ? (
+          <button
+            type="button"
+            className="brand brand-profile"
+            onClick={openVolunteerPortfolio}
+            title={"Buka portofolio " + volunteerDisplayName}
+            aria-label={"Buka portofolio " + volunteerDisplayName}
+          >
+            {volunteerAvatarUrl ? (
+              <img className="brand-mark brand-profile-avatar" src={volunteerAvatarUrl} alt="" />
+            ) : (
+              <span className="brand-mark brand-profile-avatar-fallback">{volunteerDisplayName.charAt(0).toUpperCase()}</span>
+            )}
+            <span className="brand-profile-name">{volunteerDisplayName}</span>
+          </button>
+        ) : (
+          <a className="brand" href="#beranda">
+            <span className="brand-mark">T</span>
+            <span>TUNTAS</span>
+          </a>
+        )}
         <div className="topbar-links">
           <a href="#beranda">Beranda</a>
           <a href="#laporan">Buat laporan</a>
@@ -967,6 +1117,103 @@ export default function App() {
         </div>
         <span className="nav-tag">CIVIC TECH <span aria-hidden="true">/</span> COMMUNITY ACTION</span>
       </nav>
+
+      {volunteerPortfolioOpen && user && !isAdmin && (
+        <div
+          className="volunteer-portfolio-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setVolunteerPortfolioOpen(false);
+          }}
+        >
+          <section className="volunteer-portfolio-dialog" role="dialog" aria-modal="true" aria-labelledby="volunteer-portfolio-title">
+            <button type="button" className="volunteer-portfolio-close" onClick={() => setVolunteerPortfolioOpen(false)} aria-label="Tutup portofolio"><X size={18} /></button>
+            <div className="volunteer-portfolio-cover">
+              <div className="volunteer-portfolio-identity">
+                <div className="volunteer-portfolio-avatar-large">
+                  {volunteerAvatarUrl ? (
+                    <img src={volunteerAvatarUrl} alt={"Foto " + volunteerDisplayName} />
+                  ) : (
+                    <span>{volunteerDisplayName.charAt(0).toUpperCase()}</span>
+                  )}
+                </div>
+                <div className="volunteer-portfolio-heading-copy">
+                  <span className="volunteer-portfolio-kicker"><i /> PORTOFOLIO RELAWAN TUNTAS</span>
+                  <h2 id="volunteer-portfolio-title">{volunteerDisplayName}</h2>
+                  <p>{user.email || "Anggota komunitas TUNTAS"}</p>
+                </div>
+              </div>
+              {volunteerProfile?.user_id && (
+                <label className="volunteer-portfolio-photo-action">
+                  <Camera size={14} />
+                  <span>{volunteerAvatarUploading ? "Mengunggah..." : "Ganti foto"}</span>
+                  <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleVolunteerAvatarUpload} disabled={volunteerAvatarUploading} />
+                </label>
+              )}
+            </div>
+
+            {volunteerPortfolioError && <div className="volunteer-portfolio-alert" role="alert">{volunteerPortfolioError}</div>}
+            {volunteerPortfolioLoading && !volunteerProfile?.user_id ? (
+              <div className="volunteer-portfolio-empty">Membuka data profil relawan...</div>
+            ) : !volunteerProfile?.user_id ? (
+              <div className="volunteer-portfolio-empty">
+                <UserRound size={26} />
+                <strong>Profil relawan belum dilengkapi</strong>
+                <p>Lengkapi nama dan informasi relawan terlebih dahulu. Setelah tersimpan, portofolio ini akan menampilkan aktivitasmu.</p>
+                <button type="button" onClick={() => {
+                  setVolunteerPortfolioOpen(false);
+                  window.setTimeout(() => document.getElementById("ruang-relawan")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+                }}>Lengkapi profil</button>
+              </div>
+            ) : (
+              <>
+                <div className="volunteer-portfolio-facts">
+                  <div><span><MapPin size={13} /> DOMISILI</span><strong>{volunteerProfile.area || "Belum ditambahkan"}</strong></div>
+                  <div><span><Award size={13} /> KEAHLIAN</span><strong>{volunteerProfile.skills || "Belum ditambahkan"}</strong></div>
+                  <div><span><CalendarDays size={13} /> BERGABUNG</span><strong>{volunteerProfile.created_at ? formatDate(volunteerProfile.created_at) : "Anggota TUNTAS"}</strong></div>
+                  <div><span><Phone size={13} /> KONTAK</span><strong>{volunteerProfile.phone || "Belum ditambahkan"}</strong></div>
+                </div>
+                {volunteerProfile.bio && <p className="volunteer-portfolio-bio">{volunteerProfile.bio}</p>}
+                <div className="volunteer-portfolio-metrics">
+                  <article><strong>{volunteerPortfolioTasks.length}</strong><span>Total tugas</span></article>
+                  <article><strong>{volunteerPortfolioTasks.filter((task) => task.status === "verified").length}</strong><span>Terselesaikan</span></article>
+                  <article><strong>{volunteerPortfolioTasks.filter((task) => ["claimed", "proof_submitted"].includes(task.status)).length}</strong><span>Masih aktif</span></article>
+                  <article><strong>{volunteerPortfolioTasks.filter((task) => task.status === "proof_submitted").length}</strong><span>Menunggu cek</span></article>
+                </div>
+                <div className="volunteer-portfolio-history">
+                  <div className="volunteer-portfolio-history-heading">
+                    <div><span>JEJAK KONTRIBUSI</span><h3>Riwayat tugas</h3></div>
+                    <small>{volunteerPortfolioTasks.length} tercatat</small>
+                  </div>
+                  {volunteerPortfolioLoading ? (
+                    <div className="volunteer-portfolio-empty">Memuat riwayat kontribusi...</div>
+                  ) : volunteerPortfolioTasks.length === 0 ? (
+                    <div className="volunteer-portfolio-empty"><ClipboardList size={22} /><strong>Belum ada kontribusi tercatat</strong><p>Tugas yang kamu ambil akan tampil di sini.</p></div>
+                  ) : (
+                    <div className="volunteer-portfolio-task-list">
+                      {volunteerPortfolioTasks.map((task) => {
+                        const report = volunteerPortfolioReports[task.report_id];
+                        return (
+                          <article className="volunteer-portfolio-task" key={task.id}>
+                            <span className="volunteer-portfolio-task-icon"><ClipboardList size={15} /></span>
+                            <div>
+                              <small>{report?.category || "LAPORAN TUNTAS"} · {formatDate(task.claimed_at || task.created_at)}</small>
+                              <strong>{report?.description || "Detail laporan tidak tersedia"}</strong>
+                              <p>{report?.location || "Lokasi tidak tersedia"}</p>
+                              {task.review_note && <p className="volunteer-portfolio-review-note">Catatan admin: {task.review_note}</p>}
+                            </div>
+                            <span className={"volunteer-portfolio-task-status status-" + task.status}>{volunteerAssignmentLabel(task.status)}</span>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </section>
+        </div>
+      )}
 
       <section className="hero" id="beranda" data-mask-reveal>
         <div className="eyebrow">
@@ -1248,7 +1495,7 @@ export default function App() {
         </aside>
       </section>
 
-      {authReady && user && <VolunteerCenter user={user} />}
+      {authReady && user && <VolunteerCenter user={user} onProfileUpdated={setVolunteerProfile} />}
 
       <section className="reports-section" id="laporan-warga" aria-labelledby="reports-title" data-mask-reveal>
         <div className="reports-heading">

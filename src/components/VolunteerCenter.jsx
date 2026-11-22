@@ -227,7 +227,7 @@ function AssignmentCard({ assignment, isAdmin, onCancel, onReview, onRefresh }) 
   );
 }
 
-export default function VolunteerCenter({ user, onAdminDataChanged }) {
+export default function VolunteerCenter({ user, onAdminDataChanged, onProfileUpdated }) {
   const isAdmin = isTuntasAdminUser(user);
   const [profile, setProfile] = useState(null);
   const [fullName, setFullName] = useState("");
@@ -250,7 +250,7 @@ export default function VolunteerCenter({ user, onAdminDataChanged }) {
     try {
       const profileResult = await supabase
         .from("volunteer_profiles")
-        .select("user_id, full_name, phone, bio, skills, area")
+        .select("user_id, full_name, phone, bio, skills, area, avatar_url, created_at, updated_at")
         .eq("user_id", user.id)
         .maybeSingle();
       if (profileResult.error) throw profileResult.error;
@@ -438,10 +438,11 @@ export default function VolunteerCenter({ user, onAdminDataChanged }) {
       const { data, error: profileError } = await supabase
         .from("volunteer_profiles")
         .upsert(payload, { onConflict: "user_id" })
-        .select("user_id, full_name, phone, bio, skills, area")
+        .select("user_id, full_name, phone, bio, skills, area, avatar_url, created_at, updated_at")
         .single();
       if (profileError) throw profileError;
       setProfile(data);
+      onProfileUpdated?.(data);
       setMessage("Profil relawan berhasil disimpan.");
       await loadData();
     } catch (profileError) {

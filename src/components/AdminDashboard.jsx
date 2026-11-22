@@ -372,7 +372,7 @@ export default function AdminDashboard({ user, onExit }) {
       const [reportsResult, assignmentsResult, volunteersResult, complaintsResult, evidenceResult] = await Promise.all([
         supabase.from("reports").select(REPORT_SELECT, { count: "exact" }).order("created_at", { ascending: false }).limit(1000),
         supabase.from("report_assignments").select("id, report_id, volunteer_id, status, claimed_at, submitted_at, reviewed_at, reviewer_id, review_note, created_at").order("created_at", { ascending: false }).limit(1000),
-        supabase.from("volunteer_profiles").select("user_id, full_name, phone, bio, skills, area, created_at, updated_at").order("created_at", { ascending: false }).limit(500),
+        supabase.from("volunteer_profiles").select("user_id, full_name, phone, bio, skills, area, avatar_url, created_at, updated_at").order("created_at", { ascending: false }).limit(500),
         supabase.from("report_complaints").select("id, report_id, description, location, is_initial, created_at").order("created_at", { ascending: false }).limit(5000),
         supabase.from("report_evidence").select("id, assignment_id, volunteer_id, note, created_at").order("created_at", { ascending: false }).limit(5000),
       ]);
@@ -840,7 +840,7 @@ export default function AdminDashboard({ user, onExit }) {
                 onClick={() => openVolunteerPortfolio(volunteer)}
                 aria-label={`Buka portofolio ${volunteer.full_name}`}
               >
-                <div className="admin-volunteer-card-top"><span className="admin-owner-avatar">{initials(volunteer.full_name)}</span><span className={`admin-pill ${activity.active > 0 ? "stage-progress" : "stage-new"}`}>{activity.active > 0 ? "Aktif" : "Terdaftar"}</span></div>
+                <div className="admin-volunteer-card-top">{volunteer.avatar_url ? <img className="admin-owner-avatar admin-owner-avatar-image" src={volunteer.avatar_url} alt="" /> : <span className="admin-owner-avatar">{initials(volunteer.full_name)}</span>}<span className={`admin-pill ${activity.active > 0 ? "stage-progress" : "stage-new"}`}>{activity.active > 0 ? "Aktif" : "Terdaftar"}</span></div>
                 <h3>{volunteer.full_name}</h3><p>{volunteer.phone || "Kontak belum ditambahkan"}</p>
                 <div className="admin-volunteer-stats"><div><strong>{activity.active}</strong><small>Tugas aktif</small></div><div><strong>{activity.verified}</strong><small>Terverifikasi</small></div></div>
                 <span className="admin-volunteer-card-action">Lihat portofolio <ArrowUpRight size={13} /></span>
@@ -882,7 +882,7 @@ export default function AdminDashboard({ user, onExit }) {
         <section className="admin-portfolio-hero">
           <div className="admin-portfolio-orbit" aria-hidden="true"><i /><b /></div>
           <div className="admin-portfolio-identity">
-            <span className="admin-portfolio-avatar">{initials(selectedVolunteer.full_name)}</span>
+            {selectedVolunteer.avatar_url ? <img className="admin-portfolio-avatar admin-portfolio-avatar-image" src={selectedVolunteer.avatar_url} alt="" /> : <span className="admin-portfolio-avatar">{initials(selectedVolunteer.full_name)}</span>}
             <div>
               <span className="admin-overline"><span className="admin-live-dot" /> VOLUNTEER PORTFOLIO</span>
               <h1>{selectedVolunteer.full_name}</h1>
