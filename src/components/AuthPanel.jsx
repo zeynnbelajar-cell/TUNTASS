@@ -1,17 +1,10 @@
 import React, { useState } from "react";
-import {
-  ArrowUpRight,
-  LogIn,
-  LogOut,
-  Sparkles,
-  UserRound,
-  X,
-} from "lucide-react";
+import { ArrowUpRight, LogIn, LogOut, UserRound, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
 export default function AuthPanel({ user }) {
   const [open, setOpen] = useState(false);
-  // The reference video opens on Create Account with a Welcome Back panel.
+  // Start with registration on the right and the red sliding door on the left.
   const [mode, setMode] = useState("register");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,9 +13,10 @@ export default function AuthPanel({ user }) {
   const [error, setError] = useState("");
 
   function changeMode(nextMode) {
-    setMode(nextMode);
+    if (busy || mode === nextMode) return;
     setError("");
     setMessage("");
+    setMode(nextMode);
   }
 
   async function submit(event) {
@@ -128,27 +122,24 @@ export default function AuthPanel({ user }) {
         >
           <div className="auth-dropdown-inner">
             <div className={`auth-card ${isLogin ? "is-login" : "is-register"}`}>
-              <aside className={`auth-visual ${isLogin ? "is-login" : "is-register"}`}>
-                <span className="auth-visual-kicker"><Sparkles size={13} /> TUNTAS COMMUNITY</span>
-                <div className="auth-visual-orbit" aria-hidden="true"><span /><span /><span /></div>
+              <button
+                type="button"
+                className={`auth-visual ${isLogin ? "is-login" : "is-register"}`}
+                aria-label={isLogin ? "Geser panel merah untuk daftar" : "Geser panel merah untuk masuk"}
+                onClick={() => changeMode(isLogin ? "register" : "login")}
+                disabled={busy}
+              >
                 <div className="auth-visual-copy">
-                  <p>{isLogin ? "YOUR COMMUNITY IS WAITING" : "WELCOME BACK"}</p>
+                  <p>{isLogin ? "READY TO MAKE A DIFFERENCE?" : "YOUR COMMUNITY IS WAITING"}</p>
                   <h3>{isLogin ? "Hello, Friend!" : "Welcome Back!"}</h3>
                   <span>
                     {isLogin
-                      ? "Masukkan detail akunmu dan mulai perjalanan membuat perubahan bersama."
+                      ? "Bergabunglah dan mulai perjalanan membuat perubahan bersama."
                       : "Kami senang melihatmu kembali. Masuk untuk melanjutkan aksi baikmu bersama TUNTAS."}
                   </span>
                 </div>
-                <button
-                  type="button"
-                  className="auth-mode-cta"
-                  onClick={() => changeMode(isLogin ? "register" : "login")}
-                >
-                  {isLogin ? "Sign Up" : "Sign In"}
-                  <ArrowUpRight size={15} />
-                </button>
-              </aside>
+                <span className="auth-mode-cta">{isLogin ? "Sign Up" : "Sign In"}</span>
+              </button>
 
               <div className={`auth-form-side ${isLogin ? "is-login" : "is-register"}`}>
                 <div className="auth-form-heading">
