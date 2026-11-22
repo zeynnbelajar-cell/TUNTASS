@@ -179,32 +179,81 @@ export default function App() {
     return () => previews.forEach((preview) => URL.revokeObjectURL(preview.url));
   }, [attachmentFiles]);
   useEffect(() => {
-    const selector = "[data-mask-reveal]";
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const revealSelector = "[data-mask-reveal]";
+    const cardSelector = [
+      ".report-card",
+      ".result-panel",
+      ".report-item",
+      ".attachment-preview-card",
+      ".volunteer-center",
+      ".volunteer-stats > div",
+      ".volunteer-profile-form",
+      ".volunteer-panel-section",
+      ".available-task",
+      ".assignment-card",
+      ".auth-entry",
+      ".auth-account",
+    ].join(",");
+    const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
-    if (prefersReducedMotion || !("IntersectionObserver" in window)) {
-      document.querySelectorAll(selector).forEach((element) => element.classList.add("is-revealed"));
+    const prepareTarget = (element) => {
+      if (!(element instanceof HTMLElement)) return;
+
+      const isCard = element.matches(cardSelector);
+      const isReveal = element.matches(revealSelector);
+      if (!isCard && !isReveal) return;
+
+      if (isCard && element.dataset.assemblePrepared !== "true") {
+        element.dataset.assemblePrepared = "true";
+        element.dataset.scrollAssemble = "";
+        Array.from(element.children).forEach((part, index) => {
+          part.dataset.assemblePart = "";
+          part.dataset.assembleSide = index % 2 === 0 ? "left" : "right";
+          part.style.setProperty("--assemble-index", String(index % 4));
+        });
+      }
+
+      if (prefersReducedMotion || !("IntersectionObserver" in window)) {
+        element.classList.add("is-revealed", "is-in-view");
+        return;
+      }
+
+      observer.observe(element);
+    };
+
+    if (!("IntersectionObserver" in window)) {
+      document.documentElement.classList.add("no-scroll-observer");
+      document.querySelectorAll(revealSelector + "," + cardSelector).forEach(prepareTarget);
+      return undefined;
+    }
+
+    if (prefersReducedMotion) {
+      document.querySelectorAll(revealSelector + "," + cardSelector).forEach(prepareTarget);
       return undefined;
     }
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add("is-revealed");
-        observer.unobserve(entry.target);
+        const visible = entry.isIntersecting;
+        entry.target.classList.toggle("is-in-view", visible);
+        if (entry.target.matches(revealSelector)) {
+          entry.target.classList.toggle("is-revealed", visible);
+        }
       });
-    }, { threshold: 0.12, rootMargin: "0px 0px -44px 0px" });
+    }, { threshold: 0.02, rootMargin: "0px 0px -6% 0px" });
 
-    const observeTargets = (root) => {
-      if (root instanceof Element && root.matches(selector)) observer.observe(root);
-      root.querySelectorAll?.(selector).forEach((element) => observer.observe(element));
+    const scanTargets = (rootNode) => {
+      if (rootNode instanceof Element) prepareTarget(rootNode);
+      rootNode.querySelectorAll?.(revealSelector + "," + cardSelector).forEach(prepareTarget);
     };
 
-    observeTargets(document);
+    scanTargets(document);
     const mutations = new MutationObserver((records) => {
-      records.forEach((record) => record.addedNodes.forEach((node) => {
-        if (node instanceof Element) observeTargets(node);
-      }));
+      records.forEach((record) => {
+        record.addedNodes.forEach((node) => {
+          if (node instanceof Element) scanTargets(node);
+        });
+      });
     });
     mutations.observe(document.body, { childList: true, subtree: true });
 
@@ -212,6 +261,38 @@ export default function App() {
       mutations.disconnect();
       observer.disconnect();
     };
+  }, []);
+
+  useEffect(() => {
+    const navigation = document.querySelector(".topbar");
+    if (!navigation) return undefined;
+
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const handleNavigation = (event) => {
+      if (
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) return;
+
+      const link = event.target.closest?.('a[href^="#"]');
+      if (!link || !navigation.contains(link)) return;
+
+      const target = document.getElementById(decodeURIComponent(link.hash.slice(1)));
+      if (!target) return;
+
+      event.preventDefault();
+      target.scrollIntoView({
+        behavior: reducedMotion ? "auto" : "smooth",
+        block: "start",
+      });
+      window.history.replaceState(window.history.state, "", link.hash);
+    };
+
+    navigation.addEventListener("click", handleNavigation);
+    return () => navigation.removeEventListener("click", handleNavigation);
   }, []);
 
   function uploadLargeFile(file, path, token, contentType, onProgress) {
