@@ -372,7 +372,7 @@ export default function AdminDashboard({ user, onExit }) {
       const [reportsResult, assignmentsResult, volunteersResult, complaintsResult, evidenceResult] = await Promise.all([
         supabase.from("reports").select(REPORT_SELECT, { count: "exact" }).order("created_at", { ascending: false }).limit(1000),
         supabase.from("report_assignments").select("id, report_id, volunteer_id, status, claimed_at, submitted_at, reviewed_at, reviewer_id, review_note, created_at").order("created_at", { ascending: false }).limit(1000),
-        supabase.from("volunteer_profiles").select("user_id, full_name, phone, created_at, updated_at").order("created_at", { ascending: false }).limit(500),
+        supabase.from("volunteer_profiles").select("user_id, full_name, phone, bio, skills, area, created_at, updated_at").order("created_at", { ascending: false }).limit(500),
         supabase.from("report_complaints").select("id, report_id, description, location, is_initial, created_at").order("created_at", { ascending: false }).limit(5000),
         supabase.from("report_evidence").select("id, assignment_id, volunteer_id, note, created_at").order("created_at", { ascending: false }).limit(5000),
       ]);

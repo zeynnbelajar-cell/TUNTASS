@@ -232,6 +232,9 @@ export default function VolunteerCenter({ user, onAdminDataChanged }) {
   const [profile, setProfile] = useState(null);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [bio, setBio] = useState("");
+  const [skills, setSkills] = useState("");
+  const [area, setArea] = useState("");
   const [openReports, setOpenReports] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [stats, setStats] = useState({ available: 0, active: 0, waiting: 0, verified: 0 });
@@ -247,13 +250,16 @@ export default function VolunteerCenter({ user, onAdminDataChanged }) {
     try {
       const profileResult = await supabase
         .from("volunteer_profiles")
-        .select("user_id, full_name, phone")
+        .select("user_id, full_name, phone, bio, skills, area")
         .eq("user_id", user.id)
         .maybeSingle();
       if (profileResult.error) throw profileResult.error;
       setProfile(profileResult.data || null);
       setFullName(profileResult.data?.full_name || "");
       setPhone(profileResult.data?.phone || "");
+      setBio(profileResult.data?.bio || "");
+      setSkills(profileResult.data?.skills || "");
+      setArea(profileResult.data?.area || "");
 
       const openResult = await supabase
         .from("reports")
@@ -424,12 +430,15 @@ export default function VolunteerCenter({ user, onAdminDataChanged }) {
         user_id: user.id,
         full_name: fullName.trim(),
         phone: phone.trim() || null,
+        bio: bio.trim() || null,
+        skills: skills.trim() || null,
+        area: area.trim() || null,
         updated_at: new Date().toISOString(),
       };
       const { data, error: profileError } = await supabase
         .from("volunteer_profiles")
         .upsert(payload, { onConflict: "user_id" })
-        .select("user_id, full_name, phone")
+        .select("user_id, full_name, phone, bio, skills, area")
         .single();
       if (profileError) throw profileError;
       setProfile(data);
@@ -504,18 +513,25 @@ export default function VolunteerCenter({ user, onAdminDataChanged }) {
       </div>
       <p className="volunteer-metric-note">Laporan baru hanya dihitung selesai setelah admin menyetujui bukti penanganan.</p>
 
-      {!isAdmin && !profile && (
-        <form id="tugas-saya" className="volunteer-profile-form" onSubmit={saveProfile}>
-          <div>
-            <span className="step-label">LANGKAH 01</span>
-            <h3>Lengkapi profil relawan</h3>
-            <p>Profil ini dipakai untuk mengenali penanggung jawab tugas. Nomor kontak bersifat opsional.</p>
+      {!isAdmin && (
+        <form id="profil-relawan" className="volunteer-profile-form volunteer-profile-expanded" onSubmit={saveProfile}>
+          <div className="volunteer-profile-banner">
+            <span className="volunteer-profile-avatar">{(fullName || user?.email || "R").trim().charAt(0).toUpperCase()}</span>
+            <div><span className="step-label">PROFIL RELAWAN</span><h3>{profile ? "Profil saya" : "Buat profil relawan"}</h3><p>Informasi ini membantu warga dan admin mengenali kontribusimu.</p></div>
           </div>
-          <label htmlFor="volunteer-name">Nama lengkap</label>
-          <input id="volunteer-name" value={fullName} onChange={(event) => setFullName(event.target.value)} minLength={2} maxLength={80} required placeholder="Nama yang ingin ditampilkan" />
-          <label htmlFor="volunteer-phone">Nomor kontak (opsional)</label>
-          <input id="volunteer-phone" value={phone} onChange={(event) => setPhone(event.target.value)} maxLength={30} placeholder="08xx..." />
-          <button className="volunteer-primary" disabled={savingProfile}>{savingProfile ? "Menyimpan..." : "Simpan profil"}</button>
+          <div className="volunteer-profile-fields">
+            <label htmlFor="volunteer-name">Nama lengkap</label>
+            <input id="volunteer-name" value={fullName} onChange={(event) => setFullName(event.target.value)} minLength={2} maxLength={80} required placeholder="Nama yang ingin ditampilkan" />
+            <label htmlFor="volunteer-phone">Nomor kontak</label>
+            <input id="volunteer-phone" value={phone} onChange={(event) => setPhone(event.target.value)} maxLength={30} placeholder="08xx..." />
+            <label htmlFor="volunteer-area">Domisili / wilayah</label>
+            <input id="volunteer-area" value={area} onChange={(event) => setArea(event.target.value)} maxLength={120} placeholder="Kelurahan, kecamatan, atau kota" />
+            <label htmlFor="volunteer-skills">Keahlian</label>
+            <input id="volunteer-skills" value={skills} onChange={(event) => setSkills(event.target.value)} maxLength={240} placeholder="Contoh: kebersihan, pertolongan pertama, dokumentasi" />
+            <label htmlFor="volunteer-bio">Tentang saya</label>
+            <textarea id="volunteer-bio" value={bio} onChange={(event) => setBio(event.target.value)} rows={3} maxLength={600} placeholder="Ceritakan pengalaman, motivasi, atau kontribusimu..." />
+          </div>
+          <button className="volunteer-primary" disabled={savingProfile}>{savingProfile ? "Menyimpan..." : profile ? "Simpan perubahan profil" : "Simpan profil"}</button>
         </form>
       )}
 
