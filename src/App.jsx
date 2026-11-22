@@ -1144,27 +1144,28 @@ export default function App() {
   return (
     <main className="page-shell">
       <nav className="topbar" aria-label="Navigasi utama" data-mask-reveal>
-        {authReady && user && !isAdmin ? (
-          <button
-            type="button"
-            className="brand brand-profile"
-            onClick={openVolunteerPortfolio}
-            title={"Buka portofolio " + volunteerDisplayName}
-            aria-label={"Buka portofolio " + volunteerDisplayName}
-          >
-            {volunteerAvatarUrl ? (
-              <img className="brand-mark brand-profile-avatar" src={volunteerAvatarUrl} alt="" />
-            ) : (
-              <span className="brand-mark brand-profile-avatar-fallback">{volunteerDisplayName.charAt(0).toUpperCase()}</span>
-            )}
-            <span className="brand-profile-name">{volunteerDisplayName}</span>
-          </button>
-        ) : (
-          <a className="brand" href="#beranda">
-            <span className="brand-mark">T</span>
+        <div className="topbar-brand-group">
+          <a className="brand" href="#beranda" aria-label="TUNTAS — Laporkan, Bantu, Selesaikan">
+            <img className="brand-mark brand-logo" src={`${import.meta.env.BASE_URL}tuntas-logo.webp`} alt="" />
             <span>TUNTAS</span>
           </a>
-        )}
+          {authReady && user && !isAdmin && (
+            <button
+              type="button"
+              className="brand brand-profile"
+              onClick={openVolunteerPortfolio}
+              title={"Buka portofolio " + volunteerDisplayName}
+              aria-label={"Buka portofolio " + volunteerDisplayName}
+            >
+              {volunteerAvatarUrl ? (
+                <img className="brand-mark brand-profile-avatar" src={volunteerAvatarUrl} alt="" />
+              ) : (
+                <span className="brand-mark brand-profile-avatar-fallback">{volunteerDisplayName.charAt(0).toUpperCase()}</span>
+              )}
+              <span className="brand-profile-name">{volunteerDisplayName}</span>
+            </button>
+          )}
+        </div>
         <div className="topbar-links">
           <a href="#beranda">Beranda</a>
           <a href="#laporan">Buat laporan</a>
