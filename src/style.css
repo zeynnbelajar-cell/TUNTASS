@@ -1253,3 +1253,23 @@ html {
 @media (max-width: 560px) {
   .available-task-venom { width: 100%; flex: 1 1 100%; }
 }
+
+/* Full-screen Zoom Grid canvas background */
+:root{background:#030712}
+html,body,#root{min-height:100%;background:transparent}
+body{background:#030712}
+#root{position:relative;min-height:100vh;isolation:isolate}
+.zoom-grid-background{
+  position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+  background:#030712;contain:strict;
+}
+.zoom-grid-background canvas{display:block;width:100%;height:100%;pointer-events:none}
+.tuntas-app-layer{position:relative;z-index:1;min-height:100vh}
+.page-shell{background:transparent}
+.hero h1{color:#f1f8ff;text-shadow:0 3px 24px rgba(0,0,0,.3)}
+.hero h1 em{color:#4de1dc}
+.hero-copy{color:#c0d2df}
+.hero .step-label,.hero .eyebrow{color:#8de8e4}
+@media(prefers-reduced-motion:reduce){
+  .zoom-grid-background canvas{opacity:.82}
+}
