@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import {
   ArrowUpRight,
   LogIn,
@@ -11,7 +11,8 @@ import { supabase } from "../lib/supabase";
 
 export default function AuthPanel({ user }) {
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState("login");
+  // The reference video opens on Create Account with a Welcome Back panel.
+  const [mode, setMode] = useState("register");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -126,17 +127,17 @@ export default function AuthPanel({ user }) {
           inert={!open}
         >
           <div className="auth-dropdown-inner">
-            <div className="auth-card">
-              <aside className="auth-visual">
+            <div className={`auth-card ${isLogin ? "is-login" : "is-register"}`}>
+              <aside className={`auth-visual ${isLogin ? "is-login" : "is-register"}`}>
                 <span className="auth-visual-kicker"><Sparkles size={13} /> TUNTAS COMMUNITY</span>
                 <div className="auth-visual-orbit" aria-hidden="true"><span /><span /><span /></div>
                 <div className="auth-visual-copy">
-                  <p>{isLogin ? "SENANG MELIHATMU KEMBALI" : "MULAI DARI SATU LANGKAH"}</p>
-                  <h3>{isLogin ? "Selamat datang kembali." : "Ayo bergerak bersama."}</h3>
+                  <p>{isLogin ? "YOUR COMMUNITY IS WAITING" : "WELCOME BACK"}</p>
+                  <h3>{isLogin ? "Hello, Friend!" : "Welcome Back!"}</h3>
                   <span>
                     {isLogin
-                      ? "Lanjutkan langkah baikmu. Masuk untuk melihat dan menangani laporan warga."
-                      : "Bergabunglah dengan komunitas yang mengubah kepedulian menjadi tindakan nyata."}
+                      ? "Masukkan detail akunmu dan mulai perjalanan membuat perubahan bersama."
+                      : "Kami senang melihatmu kembali. Masuk untuk melanjutkan aksi baikmu bersama TUNTAS."}
                   </span>
                 </div>
                 <button
@@ -144,16 +145,16 @@ export default function AuthPanel({ user }) {
                   className="auth-mode-cta"
                   onClick={() => changeMode(isLogin ? "register" : "login")}
                 >
-                  {isLogin ? "Belum punya akun? Daftar" : "Sudah punya akun? Masuk"}
+                  {isLogin ? "Sign Up" : "Sign In"}
                   <ArrowUpRight size={15} />
                 </button>
               </aside>
 
-              <div className="auth-form-side">
+              <div className={`auth-form-side ${isLogin ? "is-login" : "is-register"}`}>
                 <div className="auth-form-heading">
-                  <span>{isLogin ? "WELCOME BACK" : "JOIN THE MOVEMENT"}</span>
-                  <h3>{isLogin ? "Masuk ke TUNTAS" : "Buat akun relawan"}</h3>
-                  <p>{isLogin ? "Masuk untuk melanjutkan kontribusimu." : "Isi data berikut untuk mulai berkontribusi."}</p>
+                  <span>{isLogin ? "WELCOME BACK" : "GET STARTED"}</span>
+                  <h3>{isLogin ? "Welcome Back" : "Create Account"}</h3>
+                  <p>{isLogin ? "Masuk untuk melanjutkan kontribusimu." : "Buat akun relawan dan mulai ambil bagian."}</p>
                 </div>
 
                 <form className="auth-form" onSubmit={submit}>
@@ -191,12 +192,6 @@ export default function AuthPanel({ user }) {
                     Gunakan email aktif. Konfirmasi email mungkin diperlukan sebelum masuk.
                   </small>
                 </form>
-
-                <div className="auth-mobile-switch">
-                  <button type="button" onClick={() => changeMode(isLogin ? "register" : "login")}>
-                    {isLogin ? "Belum punya akun? Daftar" : "Sudah punya akun? Masuk"}
-                  </button>
-                </div>
               </div>
             </div>
           </div>
