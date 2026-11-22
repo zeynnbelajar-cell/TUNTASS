@@ -1101,3 +1101,31 @@
   }
 }
 
+
+
+/* Voxel sunset meadow backdrop — GPU scene behind the glass admin workspace. */
+.admin-meadow-background{
+  position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none;
+  opacity:.9;isolation:isolate;
+  background:linear-gradient(180deg,#e2a8ae 0%,#f8a68e 48%,#2e4410 51%,#162404 100%);
+}
+.admin-meadow-background>div{position:absolute!important;inset:0;width:100%;height:100%;}
+.admin-meadow-background canvas{opacity:1;filter:saturate(.94) contrast(1.03);}
+.admin-meadow-background::after{
+  content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:linear-gradient(180deg,rgba(5,16,19,.22) 0%,rgba(5,16,19,.18) 38%,rgba(5,16,19,.58) 100%),
+             linear-gradient(90deg,rgba(5,16,19,.14),transparent 28%,transparent 72%,rgba(5,16,19,.16));
+}
+.admin-shell.is-light .admin-meadow-background{opacity:.76;filter:saturate(.82) brightness(1.08);}
+.admin-shell.is-light .admin-meadow-background::after{
+  background:linear-gradient(180deg,rgba(240,250,248,.22) 0%,rgba(238,249,246,.15) 42%,rgba(231,246,242,.44) 100%);
+}
+@media(max-width:760px){
+  .admin-meadow-background{opacity:.82;}
+  .admin-meadow-background::after{background:linear-gradient(180deg,rgba(5,16,19,.25),rgba(5,16,19,.52));}
+}
+@media(prefers-reduced-motion:reduce){.admin-meadow-background canvas{filter:saturate(.85);}}
+
+/* Keep the dashboard cards readable while letting the meadow breathe through the glass. */
+.admin-panel{background:color-mix(in srgb,var(--admin-surface) 87%,transparent);backdrop-filter:blur(16px) saturate(1.12);}
+.admin-pipeline-card{background:linear-gradient(145deg,rgba(17,43,49,.9),rgba(11,29,35,.9));}

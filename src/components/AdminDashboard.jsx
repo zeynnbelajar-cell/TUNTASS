@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import VolunteerCenter from "./VolunteerCenter";
+import MeadowBlush from "./MeadowBlush";
 import {
   PIPELINE_STAGES,
   buildChartPaths,
@@ -993,6 +994,9 @@ export default function AdminDashboard({ user, onExit }) {
 
   return (
     <main className={`admin-shell ${theme === "light" ? "is-light" : ""}`}>
+      <div className="admin-meadow-background" aria-hidden="true">
+        <MeadowBlush style={{ width: "100%", height: "100%" }} flowers={2.8} grass={3.5} voxelSize={8} depthBlur={3.2} haze={5} hover={6} wind={6} speed={5.5} cloudSpeed={2.4} />
+      </div>
       <div className="admin-atmosphere" aria-hidden="true">
         <span /><i /><b />
         <div className="admin-particle-field">
