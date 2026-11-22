@@ -1203,3 +1203,9 @@ html {
   .topbar-logo-link { grid-column: 2; grid-row: 1; width: 42px; height: 42px; margin: 0; }
   .topbar-links { grid-column: 1 / -1; grid-row: 2; width: 100%; max-width: 100%; margin: 0; }
 }
+
+/* Keep volunteer display name visible beside the avatar on small screens. */
+@media(max-width:650px) {
+  .brand-profile { display: inline-flex; align-items: center; gap: 10px; width: auto; max-width: calc(100% - 56px); }
+  .brand-profile-name { display: inline-block !important; min-width: 0; max-width: min(190px, calc(100vw - 150px)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
