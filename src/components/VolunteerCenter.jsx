@@ -518,49 +518,6 @@ export default function VolunteerCenter({ user, onAdminDataChanged, onProfileUpd
       </div>
       <p className="volunteer-metric-note">Laporan baru hanya dihitung selesai setelah admin menyetujui bukti penanganan.</p>
 
-      {!isAdmin && (
-        <form id="profil-relawan" className="volunteer-profile-form volunteer-profile-expanded" onSubmit={saveProfile}>
-          <div className="volunteer-profile-banner">
-            <div className="volunteer-profile-avatar-stage" role={profileAvatarUrl ? "img" : undefined} aria-label={profileAvatarUrl ? `Foto profil ${fullName || "relawan"}` : undefined}>
-              {profileAvatarUrl ? (
-                <React.Suspense fallback={<span className="volunteer-profile-avatar">{profileInitial}</span>}>
-                  <PlushTile
-                    image={profileAvatarUrl}
-                    background="#260f14"
-                    furColor="#F3EDE4"
-                    scale={115}
-                    radius={48}
-                    puff={4.5}
-                    fur={{ density: 3.2, length: 4.4, lift: 3.2, frizz: 3.1, flow: "art" }}
-                    entrance={{ animate: true, delay: 0.1, duration: 1.25 }}
-                    response={{ reach: 4, strength: 3, parallax: 2.5 }}
-                    breeze={0}
-                    advanced={{ glow: 34, shadow: 42, hairWidth: 0.8, rimLight: 68 }}
-                    style={{ width: "100%", height: "100%" }}
-                  />
-                </React.Suspense>
-              ) : (
-                <span className="volunteer-profile-avatar">{profileInitial}</span>
-              )}
-            </div>
-            <div><span className="step-label">PROFIL RELAWAN</span><h3>{profile ? "Profil saya" : "Buat profil relawan"}</h3><p>Informasi ini membantu warga dan admin mengenali kontribusimu.</p></div>
-          </div>
-          <div className="volunteer-profile-fields">
-            <label htmlFor="volunteer-name">Nama lengkap</label>
-            <input id="volunteer-name" value={fullName} onChange={(event) => setFullName(event.target.value)} minLength={2} maxLength={80} required placeholder="Nama yang ingin ditampilkan" />
-            <label htmlFor="volunteer-phone">Nomor kontak</label>
-            <input id="volunteer-phone" value={phone} onChange={(event) => setPhone(event.target.value)} maxLength={30} placeholder="08xx..." />
-            <label htmlFor="volunteer-area">Domisili / wilayah</label>
-            <input id="volunteer-area" value={area} onChange={(event) => setArea(event.target.value)} maxLength={120} placeholder="Kelurahan, kecamatan, atau kota" />
-            <label htmlFor="volunteer-skills">Keahlian</label>
-            <input id="volunteer-skills" value={skills} onChange={(event) => setSkills(event.target.value)} maxLength={240} placeholder="Contoh: kebersihan, pertolongan pertama, dokumentasi" />
-            <label htmlFor="volunteer-bio">Tentang saya</label>
-            <textarea id="volunteer-bio" value={bio} onChange={(event) => setBio(event.target.value)} rows={3} maxLength={600} placeholder="Ceritakan pengalaman, motivasi, atau kontribusimu..." />
-          </div>
-          <button className="volunteer-primary" disabled={savingProfile}>{savingProfile ? "Menyimpan..." : profile ? "Simpan perubahan profil" : "Simpan profil"}</button>
-        </form>
-      )}
-
       {error && <div className="volunteer-alert volunteer-alert-error" role="alert">{error}</div>}
       {message && <div className="volunteer-alert volunteer-alert-success" role="status">{message}</div>}
       {loading ? (

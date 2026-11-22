@@ -1078,7 +1078,8 @@ export default function App() {
 
       const { data, error: updateError } = await supabase
         .from("volunteer_profiles")
-        .update({
+        .upsert({
+          user_id: user.id,
           full_name: cleanName,
           phone: cleanPhone || null,
           area: volunteerProfileDraft.area.trim() || null,
@@ -1086,8 +1087,7 @@ export default function App() {
           bio: volunteerProfileDraft.bio.trim() || null,
           avatar_url: avatarUrl,
           updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", user.id)
+        }, { onConflict: "user_id" })
         .select("user_id, full_name, phone, bio, skills, area, avatar_url, created_at, updated_at")
         .single();
       if (updateError) throw updateError;
@@ -1222,7 +1222,7 @@ export default function App() {
                   <p>{user.email || "Anggota komunitas TUNTAS"}</p>
                 </div>
               </div>
-              {volunteerProfile?.user_id && (
+              {(volunteerProfile?.user_id || (!volunteerPortfolioLoading && !volunteerProfileEditing)) && (
                 <button
                   type="button"
                   className="volunteer-portfolio-photo-action"
@@ -1230,7 +1230,7 @@ export default function App() {
                   disabled={volunteerProfileSaving}
                 >
                   {volunteerProfileEditing ? <X size={14} /> : <Pencil size={14} />}
-                  <span>{volunteerProfileEditing ? "Tutup edit" : "Edit profil"}</span>
+                  <span>{volunteerProfileEditing ? "Tutup edit" : volunteerProfile?.user_id ? "Edit profil" : "Buat profil"}</span>
                 </button>
               )}
             </div>
@@ -1238,15 +1238,11 @@ export default function App() {
             {volunteerPortfolioError && <div className="volunteer-portfolio-alert" role="alert">{volunteerPortfolioError}</div>}
             {volunteerPortfolioLoading && !volunteerProfile?.user_id ? (
               <div className="volunteer-portfolio-empty">Membuka data profil relawan...</div>
-            ) : !volunteerProfile?.user_id ? (
+            ) : (!volunteerProfile?.user_id && !volunteerProfileEditing) ? (
               <div className="volunteer-portfolio-empty">
                 <UserRound size={26} />
                 <strong>Profil relawan belum dilengkapi</strong>
                 <p>Lengkapi nama dan informasi relawan terlebih dahulu. Setelah tersimpan, portofolio ini akan menampilkan aktivitasmu.</p>
-                <button type="button" onClick={() => {
-                  setVolunteerPortfolioOpen(false);
-                  window.setTimeout(() => document.getElementById("ruang-relawan")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
-                }}>Lengkapi profil</button>
               </div>
             ) : (
               <>
