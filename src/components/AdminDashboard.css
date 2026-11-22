@@ -21,7 +21,7 @@
   background:
     radial-gradient(ellipse at 81% 15%, rgba(120, 92, 43, .18), transparent 27rem),
     radial-gradient(ellipse at 18% 58%, rgba(17, 119, 111, .16), transparent 35rem),
-    var(--admin-bg);
+    color-mix(in srgb, var(--admin-bg) 68%, transparent);
   font-family: "DM Sans", system-ui, sans-serif;
 }
 .admin-shell * { box-sizing: border-box; }
@@ -874,7 +874,7 @@
   .admin-portfolio-avatar-image { border-radius: 19px; }
 }
 
-/* Motion polish — sea-glass CRM, animated tide and smooth theme morph. */
+/* Motion polish ï¿½ sea-glass CRM, animated tide and smooth theme morph. */
 .admin-shell {
   --admin-bg:#061116;--admin-surface:#0b1b21;--admin-surface-raised:#10262d;--admin-surface-soft:#143139;
   --admin-border:rgba(164,221,218,.14);--admin-text:#ecf8f6;--admin-muted:#91acab;--admin-faint:#648180;
