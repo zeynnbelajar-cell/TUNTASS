@@ -6,6 +6,7 @@ import {
 
   Bell,
   CheckCircle2,
+  ClipboardList,
   ChevronDown,
   ChevronRight,
   Clock3,
@@ -68,6 +69,25 @@ function initials(value) {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() || "")
     .join("") || "AD";
+}
+
+function assignmentStatusLabel(status) {
+  const labels = {
+    claimed: "Sedang dikerjakan",
+    proof_submitted: "Menunggu verifikasi",
+    verified: "Selesai diverifikasi",
+    rejected: "Perlu perbaikan",
+    cancelled: "Dilepas relawan",
+  };
+  return labels[status] || status || "Belum ada status";
+}
+
+function assignmentStatusTone(status) {
+  if (status === "verified") return "done";
+  if (status === "proof_submitted") return "verification";
+  if (status === "rejected") return "revision";
+  if (status === "cancelled") return "new";
+  return "progress";
 }
 
 function priorityLabel(value) {
@@ -325,6 +345,7 @@ export default function AdminDashboard({ user, onExit }) {
   const [data, setData] = useState({ reports: [], reportCount: 0, assignments: [], volunteers: [], complaints: [], evidence: [] });
   const [activeView, setActiveView] = useState("desk");
   const [selectedReportId, setSelectedReportId] = useState(null);
+  const [selectedVolunteerId, setSelectedVolunteerId] = useState(null);
   const [detailTab, setDetailTab] = useState("overview");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -409,6 +430,14 @@ export default function AdminDashboard({ user, onExit }) {
     [data.reports]
   );
 
+  const evidenceCountByAssignment = useMemo(() => {
+    const counts = new Map();
+    for (const item of data.evidence) {
+      counts.set(item.assignment_id, (counts.get(item.assignment_id) || 0) + 1);
+    }
+    return counts;
+  }, [data.evidence]);
+
   const volunteerActivity = useMemo(
     () => buildVolunteerActivity(data.assignments),
     [data.assignments]
@@ -425,6 +454,18 @@ export default function AdminDashboard({ user, onExit }) {
   const selectedReport = useMemo(
     () => reportById.get(selectedReportId) || null,
     [reportById, selectedReportId]
+  );
+
+  const selectedVolunteer = useMemo(
+    () => data.volunteers.find((item) => item.user_id === selectedVolunteerId) || null,
+    [data.volunteers, selectedVolunteerId]
+  );
+
+  const selectedVolunteerAssignments = useMemo(
+    () => data.assignments
+      .filter((item) => item.volunteer_id === selectedVolunteerId)
+      .sort((a, b) => new Date(b.claimed_at || b.created_at || 0) - new Date(a.claimed_at || a.created_at || 0)),
+    [data.assignments, selectedVolunteerId]
   );
 
   const selectedComplaints = useMemo(
@@ -487,6 +528,11 @@ export default function AdminDashboard({ user, onExit }) {
     setSelectedReportId(report.id);
     setDetailTab("overview");
     setActiveView("detail");
+  }
+
+  function openVolunteerPortfolio(volunteer) {
+    setSelectedVolunteerId(volunteer.user_id);
+    setActiveView("volunteer-portfolio");
   }
 
   function exportReports() {
@@ -782,19 +828,127 @@ export default function AdminDashboard({ user, onExit }) {
     const activityByVolunteer = volunteerActivity;
     return (
       <section className="admin-page-section">
-        <div className="admin-page-heading"><div><span className="admin-overline">KOLABORASI LAPANGAN</span><h1>Direktori relawan</h1><p>Profil dan aktivitas relawan yang terdaftar di TUNTAS.</p></div><span className="admin-page-count">{data.volunteers.length} relawan</span></div>
+        <div className="admin-page-heading"><div><span className="admin-overline">KOLABORASI LAPANGAN</span><h1>Direktori relawan</h1><p>Pilih salah satu relawan untuk membuka portofolio dan melihat seluruh kontribusinya.</p></div><span className="admin-page-count">{data.volunteers.length} relawan</span></div>
         <div className="admin-volunteer-grid">
           {data.volunteers.length === 0 ? <div className="admin-panel admin-empty"><Users size={20} /><strong>Belum ada profil relawan.</strong><span>Relawan akan muncul setelah melengkapi profil.</span></div> : data.volunteers.map((volunteer) => {
             const activity = activityByVolunteer.get(volunteer.user_id) || { active: 0, verified: 0 };
             return (
-              <article className="admin-panel admin-volunteer-card" key={volunteer.user_id}>
-                <div className="admin-volunteer-card-top"><span className="admin-owner-avatar">{initials(volunteer.full_name)}</span><span className="admin-pill stage-progress">{activity.active > 0 ? "Aktif" : "Terdaftar"}</span></div>
+              <button
+                type="button"
+                className="admin-panel admin-volunteer-card"
+                key={volunteer.user_id}
+                onClick={() => openVolunteerPortfolio(volunteer)}
+                aria-label={`Buka portofolio ${volunteer.full_name}`}
+              >
+                <div className="admin-volunteer-card-top"><span className="admin-owner-avatar">{initials(volunteer.full_name)}</span><span className={`admin-pill ${activity.active > 0 ? "stage-progress" : "stage-new"}`}>{activity.active > 0 ? "Aktif" : "Terdaftar"}</span></div>
                 <h3>{volunteer.full_name}</h3><p>{volunteer.phone || "Kontak belum ditambahkan"}</p>
                 <div className="admin-volunteer-stats"><div><strong>{activity.active}</strong><small>Tugas aktif</small></div><div><strong>{activity.verified}</strong><small>Terverifikasi</small></div></div>
+                <span className="admin-volunteer-card-action">Lihat portofolio <ArrowUpRight size={13} /></span>
                 <small className="admin-muted">Bergabung {formatDate(volunteer.created_at)}</small>
-              </article>
+              </button>
             );
           })}
+        </div>
+      </section>
+    );
+  }
+
+  function renderVolunteerPortfolio() {
+    if (!selectedVolunteer) {
+      return (
+        <div className="admin-panel admin-empty-page">
+          <Users size={22} />
+          <strong>Profil relawan tidak ditemukan.</strong>
+          <button type="button" className="admin-button admin-button-quiet" onClick={() => setActiveView("volunteers")}>Kembali ke direktori relawan</button>
+        </div>
+      );
+    }
+
+    const tasks = selectedVolunteerAssignments.map((assignment) => ({
+      assignment,
+      report: reportById.get(assignment.report_id) || null,
+      evidenceCount: evidenceCountByAssignment.get(assignment.id) || 0,
+    }));
+    const totalTasks = tasks.length;
+    const activeTasks = tasks.filter(({ assignment }) => ["claimed", "proof_submitted"].includes(assignment.status)).length;
+    const completedTasks = tasks.filter(({ assignment }) => assignment.status === "verified").length;
+    const pendingTasks = tasks.filter(({ assignment }) => assignment.status === "proof_submitted").length;
+    const needsRevision = tasks.filter(({ assignment }) => assignment.status === "rejected").length;
+
+    return (
+      <section className="admin-page-section admin-volunteer-portfolio">
+        <button type="button" className="admin-back-button" onClick={() => setActiveView("volunteers")}><ArrowLeft size={15} /> Kembali ke direktori relawan</button>
+
+        <section className="admin-portfolio-hero">
+          <div className="admin-portfolio-orbit" aria-hidden="true"><i /><b /></div>
+          <div className="admin-portfolio-identity">
+            <span className="admin-portfolio-avatar">{initials(selectedVolunteer.full_name)}</span>
+            <div>
+              <span className="admin-overline"><span className="admin-live-dot" /> VOLUNTEER PORTFOLIO</span>
+              <h1>{selectedVolunteer.full_name}</h1>
+              <p>Relawan TUNTAS sejak {formatDate(selectedVolunteer.created_at)}</p>
+              <div className="admin-portfolio-contact">
+                <span><Users size={13} /> Anggota komunitas TUNTAS</span>
+                {selectedVolunteer.phone && <a href={`tel:${selectedVolunteer.phone.replace(/[^+\\d]/g, "")}`}><ShieldCheck size={13} /> {selectedVolunteer.phone}</a>}
+              </div>
+            </div>
+          </div>
+          <span className={`admin-portfolio-status ${activeTasks > 0 ? "is-active" : "is-idle"}`}><i /> {activeTasks > 0 ? "Sedang aktif di lapangan" : "Tidak ada tugas aktif"}</span>
+        </section>
+
+        <div className="admin-portfolio-stats">
+          <article className="admin-portfolio-stat stat-total"><span>Total kontribusi</span><strong>{totalTasks.toLocaleString("id-ID")}</strong><small>Seluruh tugas yang pernah diambil</small></article>
+          <article className="admin-portfolio-stat stat-complete"><span>Tugas terselesaikan</span><strong>{completedTasks.toLocaleString("id-ID")}</strong><small>Bukti sudah disetujui admin</small></article>
+          <article className="admin-portfolio-stat stat-active"><span>Sedang ditangani</span><strong>{activeTasks.toLocaleString("id-ID")}</strong><small>Tugas aktif saat ini</small></article>
+          <article className="admin-portfolio-stat stat-review"><span>Menunggu verifikasi</span><strong>{pendingTasks.toLocaleString("id-ID")}</strong><small>Bukti menunggu pemeriksaan</small></article>
+        </div>
+
+        <div className="admin-portfolio-main">
+          <section className="admin-panel admin-portfolio-task-panel">
+            <div className="admin-panel-heading">
+              <div><span className="admin-overline">JEJAK KONTRIBUSI</span><h2>Portofolio tugas</h2><p>Daftar tugas dan hasil kerja yang tercatat di TUNTAS.</p></div>
+              <span className="admin-mini-count">{totalTasks} tugas</span>
+            </div>
+            {tasks.length === 0 ? (
+              <div className="admin-empty"><ClipboardList size={20} /><strong>Belum ada kontribusi tercatat.</strong><span>Tugas relawan akan muncul di sini setelah mengambil laporan.</span></div>
+            ) : (
+              <div className="admin-portfolio-task-list">
+                {tasks.map(({ assignment, report, evidenceCount }) => (
+                  <article className="admin-portfolio-task" key={assignment.id}>
+                    <span className={`admin-portfolio-task-marker stage-${assignmentStatusTone(assignment.status)}`}><ClipboardList size={15} /></span>
+                    <div className="admin-portfolio-task-copy">
+                      <span className="admin-card-category">{report?.category || "Laporan TUNTAS"}</span>
+                      <strong>{report?.description || "Rincian laporan tidak tersedia"}</strong>
+                      <small>{report?.location || "Lokasi tidak tersedia"} · {formatDate(assignment.claimed_at || assignment.created_at, true)}</small>
+                      {assignment.review_note && <p>Catatan verifikasi: {assignment.review_note}</p>}
+                      <span className="admin-portfolio-task-meta">
+                        <span className={`admin-pill stage-${assignmentStatusTone(assignment.status)}`}>{assignmentStatusLabel(assignment.status)}</span>
+                        {evidenceCount > 0 && <small>{evidenceCount} catatan bukti</small>}
+                        {assignment.reviewed_at && <small>Ditinjau {formatDate(assignment.reviewed_at, true)}</small>}
+                      </span>
+                    </div>
+                    {report && <button type="button" className="admin-portfolio-open-task" onClick={() => openReport(report)} aria-label="Buka rincian laporan"><ChevronRight size={17} /></button>}
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <aside className="admin-panel admin-portfolio-side">
+            <span className="admin-overline">RINGKASAN RELAWAN</span>
+            <h2>Kontribusi nyata</h2>
+            <p>Portofolio ini merangkum aktivitas yang benar-benar tercatat pada sistem TUNTAS.</p>
+            <div className="admin-portfolio-progress">
+              <div><span>Tingkat penyelesaian tugas</span><strong>{totalTasks ? Math.round((completedTasks / totalTasks) * 100) : 0}%</strong></div>
+              <span className="admin-portfolio-progress-track"><i style={{ width: `${totalTasks ? (completedTasks / totalTasks) * 100 : 0}%` }} /></span>
+            </div>
+            <div className="admin-portfolio-side-facts">
+              <div><span><ShieldCheck size={14} /> Perlu perbaikan</span><strong>{needsRevision}</strong></div>
+              <div><span><Clock3 size={14} /> Bergabung</span><strong>{formatDate(selectedVolunteer.created_at)}</strong></div>
+              <div><span><ClipboardList size={14} /> Terakhir diperbarui</span><strong>{formatDate(selectedVolunteer.updated_at)}</strong></div>
+            </div>
+            <div className="admin-portfolio-note"><CheckCircle2 size={16} /><span>Data berasal dari riwayat penugasan dan verifikasi yang tersimpan di database TUNTAS.</span></div>
+          </aside>
         </div>
       </section>
     );
@@ -819,7 +973,7 @@ export default function AdminDashboard({ user, onExit }) {
         </button>
         <nav className="admin-nav" aria-label="Navigasi dashboard admin">
           {navItems.map(({ id, label, icon: Icon, count }) => (
-            <button type="button" key={id} className={activeView === id || (activeView === "detail" && id === "reports") ? "active" : ""} onClick={() => setActiveView(id)}>
+            <button type="button" key={id} className={activeView === id || (activeView === "detail" && id === "reports") || (activeView === "volunteer-portfolio" && id === "volunteers") ? "active" : ""} onClick={() => setActiveView(id)}>
               {label}{typeof count === "number" && <span>{count}</span>}
             </button>
           ))}
@@ -844,7 +998,7 @@ export default function AdminDashboard({ user, onExit }) {
       </header>
 
       <div className="admin-workspace-crumb">
-        <span>Workspace</span><ChevronRight size={13} /><strong>{navItems.find((item) => item.id === activeView)?.label || (activeView === "detail" ? "Rincian laporan" : "Verifikasi")}</strong>
+        <span>Workspace</span><ChevronRight size={13} /><strong>{navItems.find((item) => item.id === activeView)?.label || (activeView === "detail" ? "Rincian laporan" : activeView === "volunteer-portfolio" ? "Portofolio relawan" : "Verifikasi")}</strong>
         <span className="admin-online-state"><i /> Sistem aktif <b /> {new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit" }).format(new Date())}</span>
       </div>
 
@@ -859,6 +1013,7 @@ export default function AdminDashboard({ user, onExit }) {
             {activeView === "reports" && renderReports()}
             {activeView === "detail" && renderDetail()}
             {activeView === "volunteers" && renderVolunteers()}
+            {activeView === "volunteer-portfolio" && renderVolunteerPortfolio()}
             {activeView === "verification" && <div className="admin-verification-view"><VolunteerCenter user={user} onAdminDataChanged={loadDashboard} /></div>}
           </div>
         )}
