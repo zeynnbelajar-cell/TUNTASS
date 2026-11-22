@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, ClipboardList, LogIn, LogOut, UserRound, UsersRound, X } from "lucide-react";
+import { ArrowUpRight, LogIn, LogOut, UserRound, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
 const AUTH_SLIDE_DURATION_MS = 820;
@@ -107,16 +107,7 @@ export default function AuthPanel({ user }) {
           <strong>{user.email}</strong>
           <small>{user.app_metadata?.tuntas_role === "admin" ? "Admin TUNTAS" : "Akun relawan"}</small>
         </span>
-        {user.app_metadata?.tuntas_role !== "admin" && (
-          <nav className="auth-account-menu" aria-label="Menu akun relawan">
-            <a className="auth-account-link" href="#ruang-relawan">
-              <UsersRound size={15} /> Ruang relawan
-            </a>
-            <a className="auth-account-link" href="#tugas-saya">
-              <ClipboardList size={15} /> Tugas ku{String.fromCodePoint(0x1F601)}
-            </a>
-          </nav>
-        )}
+
         <button type="button" className="auth-signout" onClick={signOut}>
           <LogOut size={15} /> Keluar
         </button>

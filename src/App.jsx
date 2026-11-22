@@ -923,6 +923,12 @@ export default function App() {
           <a href="#beranda">Beranda</a>
           <a href="#laporan">Buat laporan</a>
           <a href="#laporan-warga">Laporan warga</a>
+          {authReady && user && user.app_metadata?.tuntas_role !== "admin" && (
+            <>
+              <a href="#ruang-relawan">Ruang relawan</a>
+              <a href="#tugas-saya">Tugas ku{String.fromCodePoint(0x1F601)}</a>
+            </>
+          )}
         </div>
         <span className="nav-tag">CIVIC TECH <span aria-hidden="true">/</span> COMMUNITY ACTION</span>
       </nav>
