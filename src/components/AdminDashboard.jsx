@@ -968,7 +968,7 @@ export default function AdminDashboard({ user, onExit }) {
       {themeTransitionKey > 0 && <div key={themeTransitionKey} className={`admin-theme-wipe ${theme === "light" ? "to-light" : "to-dark"}`} aria-hidden="true" />}
       <header className="admin-topbar">
         <button type="button" className="admin-brand" onClick={() => setActiveView("desk")} aria-label="TUNTAS Desk">
-          <span className="admin-brand-mark">T</span>
+          <img className="admin-brand-mark admin-brand-logo" src={`${import.meta.env.BASE_URL}tuntas-logo.webp`} alt="" />
           <span><strong>TUNTAS</strong><small>ADMIN WORKSPACE</small></span>
         </button>
         <nav className="admin-nav" aria-label="Navigasi dashboard admin">

@@ -60,6 +60,7 @@
   border-radius: 11px; color: #062321; background: var(--admin-accent);
   box-shadow: 0 0 20px rgba(91,212,197,.18); font: 800 17px Manrope, sans-serif;
 }
+.admin-brand-logo { width: 44px; height: 44px; flex: 0 0 44px; padding: 0; border: 1px solid rgba(102, 220, 243, .5); border-radius: 12px; object-fit: cover; background: #050b1c; box-shadow: 0 0 22px rgba(36, 140, 255, .28); }
 .admin-brand>span:last-child { display: grid; gap: 1px; }
 .admin-brand strong { font: 800 13px Manrope, sans-serif; letter-spacing: .08em; }
 .admin-brand small { color: var(--admin-muted); font-size: 8px; letter-spacing: .15em; }
