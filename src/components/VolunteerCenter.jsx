@@ -482,7 +482,7 @@ export default function VolunteerCenter({ user }) {
   );
 
   return (
-    <section className="volunteer-center" aria-labelledby="volunteer-title" data-mask-reveal>
+    <section id="ruang-relawan" className="volunteer-center" aria-labelledby="volunteer-title" data-mask-reveal>
       <div className="volunteer-heading">
         <div>
           <span className="eyebrow">AKSI WARGA</span>
@@ -503,7 +503,7 @@ export default function VolunteerCenter({ user }) {
       <p className="volunteer-metric-note">Laporan baru hanya dihitung selesai setelah admin menyetujui bukti penanganan.</p>
 
       {!isAdmin && !profile && (
-        <form className="volunteer-profile-form" onSubmit={saveProfile}>
+        <form id="tugas-saya" className="volunteer-profile-form" onSubmit={saveProfile}>
           <div>
             <span className="step-label">LANGKAH 01</span>
             <h3>Lengkapi profil relawan</h3>
@@ -562,7 +562,7 @@ export default function VolunteerCenter({ user }) {
             )}
           </div>
 
-          <div className="volunteer-panel-section">
+          <div id="tugas-saya" className="volunteer-panel-section">
             <div className="volunteer-subheading">
               <div><h3>Tugas saya</h3><p>Riwayat tugas yang kamu ambil dan bukti yang sudah dikirim.</p></div>
               <span>{assignments.length} tugas</span>

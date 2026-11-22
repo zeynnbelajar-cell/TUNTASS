@@ -681,3 +681,74 @@ html {
     transition: none !important;
   }
 }
+
+/* Signed-in volunteer quick navigation. */
+.auth-account-menu {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-left: auto;
+}
+
+.auth-account-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid rgba(64, 193, 194, .3);
+  border-radius: 10px;
+  background: rgba(232, 250, 248, .8);
+  color: #087c83;
+  font-size: 10px;
+  font-weight: 750;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.auth-account-link:hover,
+.auth-account-link:focus-visible {
+  outline: none;
+  border-color: rgba(25, 187, 190, .65);
+  background: #e4fbf8;
+  transform: translateY(-1px);
+}
+
+#ruang-relawan,
+#tugas-saya {
+  scroll-margin-top: 112px;
+}
+
+@media (max-width: 650px) {
+  .auth-account {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+
+  .auth-account-menu {
+    order: 3;
+    flex: 1 0 100%;
+    width: 100%;
+    margin: 0;
+  }
+
+  .auth-account-link {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 9px 7px;
+    font-size: 9px;
+  }
+
+  .auth-signout {
+    margin-left: auto;
+  }
+
+  #ruang-relawan,
+  #tugas-saya {
+    scroll-margin-top: 104px;
+  }
+}
