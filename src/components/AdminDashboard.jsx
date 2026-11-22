@@ -993,7 +993,22 @@ export default function AdminDashboard({ user, onExit }) {
 
   return (
     <main className={`admin-shell ${theme === "light" ? "is-light" : ""}`}>
-      <div className="admin-atmosphere" aria-hidden="true"><span /><i /><b /></div>
+      <div className="admin-atmosphere" aria-hidden="true">
+        <span /><i /><b />
+        <div className="admin-particle-field">
+          {Array.from({ length: 14 }, (_, index) => (
+            <i
+              key={index}
+              style={{
+                left: `${(index * 17 + 6) % 96}%`,
+                animationDelay: `-${index * 1.17}s`,
+                animationDuration: `${12 + (index % 5) * 2.4}s`,
+                "--particle-size": `${2 + (index % 3)}px`,
+              }}
+            />
+          ))}
+        </div>
+      </div>
       {themeTransitionKey > 0 && <div key={themeTransitionKey} className={`admin-theme-wipe ${theme === "light" ? "to-light" : "to-dark"}`} aria-hidden="true" />}
       <header className="admin-topbar">
         <button type="button" className="admin-brand" onClick={() => setActiveView("desk")} aria-label="TUNTAS Desk">
