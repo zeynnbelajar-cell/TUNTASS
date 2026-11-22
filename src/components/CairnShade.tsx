@@ -998,6 +998,105 @@ export default function CairnShade(props: CairnShadeProps) {
                 cadence = gap < cadence ? Math.max(4, gap) : Math.min(gap, cadence + 0.2)
             }
             lastRafAt = now
+            if (due === 0) due = now
+            if (now < due - 3 && !dirty) {
+                raf = requestAnimationFrame(frame)
+                return
+            }
+            const busy = draw(now)
+            dirty = false
+            const reduced = !!(mq && mq.matches)
+            const pointerActive = ptr.x !== ptr.tx || ptr.y !== ptr.ty || ptr.vx !== 0 || ptr.vy !== 0 || ptr.over !== (reduced ? 0 : ptr.overT) || ptr.press !== (reduced ? 0 : ptr.pressT) || ptr.wobbleT < 3000
+            const mode = !busy ? 0 : pointerActive ? 60 : 30
+            if (mode) {
+                const period = 1000 / mode
+                // Accumulator pacing: even cadence at any refresh rate.
+                due += period
+                if (due < now - period) due = now
+                // Resolution budget. Canvas work lands on the GPU process, so main-thread
+                // time hides it; judge by drawn frames arriving late against what the
+                // display can deliver (Framer's canvas often ticks at 30 Hz).
+                if (lastMode === mode && lastDrawAt > 0) {
+                    const expected = Math.max(1, Math.round(period / cadence - 0.15)) * cadence
+                    lateEma += ((now - lastDrawAt) / expected - lateEma) * 0.1
+                }
+                if (lateEma > 1.35) {
+                    slowFor += 1
+                    fastFor = 0
+                } else if (lateEma < 1.1) {
+                    fastFor += 1
+                    slowFor = 0
+                } else {
+                    slowFor = fastFor = 0
+                }
+                if (slowFor > 20 && quality > QUALITY_FLOOR) {
+                    quality = Math.max(QUALITY_FLOOR, quality * 0.85)
+                    slowFor = 0
+                    lateEma = 1
+                    climbBan = now + banMs
+                    banMs = Math.min(60000, banMs * 2)
+                    requestResize() // applied by the next draw, never between frames
+                } else if (fastFor > 150 && quality < 1 && now > climbBan) {
+                    quality = Math.min(1, quality / 0.85)
+                    fastFor = 0
+                    requestResize() // applied by the next draw, never between frames
+                }
+                lastDrawAt = now
+                lastMode = mode
+                raf = requestAnimationFrame(frame)
+            } else {
+                lastMode = 0
+                lastDrawAt = 0
+                lastTick = -1 // a still scene does not bank time
+            }
+        }
+
+        ro.observe(root)
+        raf = requestAnimationFrame(frame)
+
+        return () => {
+            cancelAnimationFrame(raf)
+            window.clearTimeout(fontTimer)
+            raf = -1
+            wakeRef.current = () => {}
+            ro.disconnect()
+            io?.disconnect()
+            document.removeEventListener("visibilitychange", onVis)
+            canvas.removeEventListener("contextlost", onLost)
+            canvas.removeEventListener("contextrestored", onRestored)
+            root.removeEventListener("pointermove", onMove)
+            root.removeEventListener("pointerenter", onEnter)
+            root.removeEventListener("pointerleave", onLeave)
+            root.removeEventListener("pointerdown", onDown)
+            window.removeEventListener("pointerup", onUp)
+            window.removeEventListener("pointercancel", onUp)
+            window.removeEventListener("scroll", onScroll, { capture: true })
+        }
+    }, [])
+
+    const vig = clamp(num(adv.vignette, 0) / 100, 0, 1)
+    // No minWidth/minHeight: the root fills any frame and the stack is contained in it.
+    // The Background is CSS on the root, so Placement moves the plates, never the ground.
+    return (
+        <div
+            ref={rootRef}
+            style={{
+                position: "relative",
+                width: "100%",
+                height: "100%",
+                aspectRatio: `${REF_W} / ${REF_H}`,
+                ...style,
+                overflow: "hidden",
+                background,
+                touchAction: "pan-y",
+            }}
+        >
+            {/* Size, position, tilt and origin are set imperatively. */}
+            <canvas ref={canvasRef} style={{ position: "absolute", left: 0, top: 0, width: "100%", height: "100%", display: "block", pointerEvents: "none" }} />
+            {vig > 0 && (
+                <div
+                    style={{
+                        position: "absolute",
                         inset: 0,
                         pointerEvents: "none",
                         background: `radial-gradient(circle farthest-corner at center, rgba(0,0,0,0) 40%, rgba(0,0,0,${clamp(0.9 * vig, 0, 1)}) 100%)`,
