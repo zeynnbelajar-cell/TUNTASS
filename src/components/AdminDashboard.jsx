@@ -210,9 +210,10 @@ function AdminRouteTimeline({ progress }) {
           </g>
         ))}
         <g className="admin-route-marker" transform={`translate(${marker.x}, ${marker.y - 28})`} filter="url(#admin-route-glow)">
-          <rect x="-13" y="-13" width="26" height="26" rx="8" />
-          <path d="M-5 4 L0 -6 L5 4 Z" />
-          <circle cx="0" cy="1" r="1.2" />
+          <rect x="-15" y="-14" width="30" height="28" rx="9" />
+          <path className="admin-route-boat-hull" d="M-10 5 H10 L6 10 H-6 Z" />
+          <path className="admin-route-boat-mast" d="M0 -9 V5" />
+          <path className="admin-route-boat-sail" d="M-1 -8 L-8 2 H-1 Z M2 -6 L8 2 H2 Z" />
         </g>
       </svg>
       <div className="admin-route-labels">
