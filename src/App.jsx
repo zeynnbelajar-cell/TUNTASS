@@ -1145,10 +1145,6 @@ export default function App() {
     <main className="page-shell">
       <nav className="topbar" aria-label="Navigasi utama" data-mask-reveal>
         <div className="topbar-brand-group">
-          <a className="brand" href="#beranda" aria-label="TUNTAS — Laporkan, Bantu, Selesaikan">
-            <img className="brand-mark brand-logo" src={`${import.meta.env.BASE_URL}tuntas-logo.webp`} alt="" />
-            <span>TUNTAS</span>
-          </a>
           {authReady && user && !isAdmin && (
             <button
               type="button"
@@ -1182,7 +1178,9 @@ export default function App() {
             </>
           )}
         </div>
-        <span className="nav-tag">CIVIC TECH <span aria-hidden="true">/</span> COMMUNITY ACTION</span>
+        <a className="topbar-logo-link" href="#beranda" aria-label="TUNTAS">
+          <img src={`${import.meta.env.BASE_URL}tuntas-logo.webp`} alt="TUNTAS" />
+        </a>
       </nav>
 
       {volunteerPortfolioOpen && user && !isAdmin && (

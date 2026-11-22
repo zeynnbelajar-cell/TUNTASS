@@ -1180,3 +1180,26 @@ html {
   .volunteer-portfolio-edit-actions { display: grid; grid-template-columns: 1fr auto; }
   .volunteer-portfolio-edit-actions button { min-height: 44px; padding: 10px 13px; }
 }
+
+/* Header layout: volunteer identity left, Neon Wave menu center, TUNTAS mark only on the right. */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.topbar-brand-group { flex: 0 1 auto; }
+.topbar-links { flex: 0 1 auto; margin-inline: auto; }
+.topbar-logo-link {
+  position: relative; z-index: 1; display: grid; place-items: center;
+  width: 48px; height: 48px; flex: 0 0 48px; margin-left: 4px;
+  border: 1px solid rgba(87,224,239,.34); border-radius: 13px;
+  background: rgba(5,11,28,.42); box-shadow: 0 0 22px rgba(36,140,255,.2);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.topbar-logo-link img { display: block; width: 100%; height: 100%; border-radius: inherit; object-fit: contain; }
+.topbar-logo-link:hover { transform: translateY(-2px); box-shadow: 0 0 28px rgba(36,180,255,.34); }
+.topbar-logo-link:focus-visible { outline: 2px solid #8ff8ed; outline-offset: 3px; }
+@media(max-width:650px) {
+  .topbar { display: grid; grid-template-columns: minmax(0,1fr) 44px; grid-template-rows: auto auto; align-items: center; gap: 10px 12px; }
+  .topbar-brand-group { grid-column: 1; grid-row: 1; min-width: 0; }
+  .brand-profile { max-width: 100%; }
+  .brand-profile-name { max-width: min(190px, 42vw); }
+  .topbar-logo-link { grid-column: 2; grid-row: 1; width: 42px; height: 42px; margin: 0; }
+  .topbar-links { grid-column: 1 / -1; grid-row: 2; width: 100%; max-width: 100%; margin: 0; }
+}
