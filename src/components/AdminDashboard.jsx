@@ -77,9 +77,10 @@ function priorityLabel(value) {
 
 function getReportProgress(status) {
   const stage = getPipelineStage(status);
-  if (stage === "done") return 3;
+  if (stage === "done") return 4;
+  if (stage === "revision") return 3;
   if (stage === "verification") return 2;
-  if (stage === "progress" || stage === "revision") return 1;
+  if (stage === "progress") return 1;
   return 0;
 }
 
@@ -100,17 +101,109 @@ function makeCsv(reports) {
 }
 
 function MetricCard({ icon: Icon, label, value, note, tone, trend }) {
+  const seed = tone === "gold" ? "2,19 14,15 25,17 36,9 48,13 60,6 72,11 84,4" :
+    tone === "blue" ? "2,17 14,12 25,15 36,8 48,12 60,5 72,9 84,3" :
+    tone === "coral" ? "2,18 14,15 25,9 36,14 48,7 60,11 72,4 84,7" :
+    "2,18 14,12 25,16 36,8 48,12 60,6 72,8 84,2";
   return (
-    <article className={`admin-metric admin-metric-${tone}`}>
-      <div className="admin-metric-top">
-        <span className="admin-metric-icon"><Icon size={17} /></span>
+    <article className={`admin-metric admin-metric-${tone}`} data-stagger-card>
+      <div className="admin-metric-heading">
+        <span className="admin-metric-label"><Icon size={12} /> {label}</span>
         {trend && <span className="admin-metric-trend">{trend}</span>}
       </div>
-      <span className="admin-metric-label">{label}</span>
-      <strong>{value.toLocaleString("id-ID")}</strong>
+      <div className="admin-metric-value-row">
+        <strong>{value.toLocaleString("id-ID")}</strong>
+        <svg className="admin-metric-sparkline" viewBox="0 0 86 22" aria-hidden="true">
+          <polyline points={seed} />
+        </svg>
+      </div>
       <small>{note}</small>
-      <span className="admin-metric-wave" aria-hidden="true" />
     </article>
+  );
+}
+
+function AdminRouteTimeline({ progress }) {
+  const points = [{ x: 72, y: 48 }, { x: 285, y: 48 }, { x: 500, y: 48 }, { x: 715, y: 48 }, { x: 928, y: 48 }];
+  const [routePosition, setRoutePosition] = useState(0);
+  const steps = [
+    { label: "Diterima", meta: "Laporan masuk" },
+    { label: "Ditangani", meta: "Relawan bergerak" },
+    { label: "Verifikasi", meta: "Bukti diperiksa" },
+    { label: "Perbaikan", meta: "Tindak lanjut" },
+    { label: "Selesai", meta: "Tuntas" },
+  ];
+
+  useEffect(() => {
+    const target = Math.max(0, Math.min(4, progress));
+    const from = routePosition;
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      setRoutePosition(target);
+      return undefined;
+    }
+    let frameId = 0;
+    let startTime = 0;
+    const duration = 1450;
+    const animate = (now) => {
+      if (!startTime) startTime = now;
+      const t = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setRoutePosition(from + (target - from) * eased);
+      if (t < 1) frameId = window.requestAnimationFrame(animate);
+    };
+    frameId = window.requestAnimationFrame(animate);
+    return () => window.cancelAnimationFrame(frameId);
+  }, [progress]);
+
+  const segment = Math.min(3, Math.floor(routePosition));
+  const segmentProgress = routePosition >= 4 ? 1 : routePosition - segment;
+  const curveDirection = segment % 2 === 0 ? 1 : -1;
+  const marker = {
+    x: points[segment].x + (points[segment + 1].x - points[segment].x) * segmentProgress,
+    y: 48 + curveDirection * 25 * Math.sin(Math.PI * segmentProgress),
+  };
+  const progressPercent = (Math.max(0, Math.min(4, progress)) / 4) * 100;
+  return (
+    <section className="admin-route-panel" aria-label="Perjalanan penyelesaian laporan">
+      <div className="admin-route-topline">
+        <span className="admin-overline">JALUR PENYELESAIAN</span>
+        <span className="admin-route-live"><i /> {steps[progress]?.label || "Diterima"}</span>
+      </div>
+      <svg className="admin-route-svg" viewBox="0 0 1000 112" role="img" aria-label={`Progres laporan: ${steps[progress]?.label || "Diterima"}`}>
+        <defs>
+          <linearGradient id="admin-route-gradient" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stopColor="var(--admin-accent)" />
+            <stop offset="100%" stopColor="var(--admin-accent-bright)" />
+          </linearGradient>
+          <filter id="admin-route-glow"><feGaussianBlur stdDeviation="4" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+        </defs>
+        <path d="M72 48 C145 73 215 73 285 48 S430 23 500 48 S645 73 715 48 S860 23 928 48" className="admin-route-track" />
+        <path d="M72 48 C145 73 215 73 285 48 S430 23 500 48 S645 73 715 48 S860 23 928 48" className="admin-route-progress" pathLength="100" style={{ strokeDashoffset: 100 - progressPercent }} />
+        {points.map((point, index) => (
+          <g key={steps[index].label} className={index <= progress ? "is-complete" : ""}>
+            <circle cx={point.x} cy={point.y} r="11" className="admin-route-node" />
+            {index < progress ? (
+              <path d={`M${point.x - 4} ${point.y} l3 3 5 -6`} className="admin-route-check" />
+            ) : (
+              <circle cx={point.x} cy={point.y} r="3" className="admin-route-node-core" />
+            )}
+          </g>
+        ))}
+        <g className="admin-route-marker" transform={`translate(${marker.x}, ${marker.y - 28})`} filter="url(#admin-route-glow)">
+          <rect x="-13" y="-13" width="26" height="26" rx="8" />
+          <path d="M-5 4 L0 -6 L5 4 Z" />
+          <circle cx="0" cy="1" r="1.2" />
+        </g>
+      </svg>
+      <div className="admin-route-labels">
+        {steps.map((step, index) => (
+          <div key={step.label} className={index <= progress ? "is-complete" : ""}>
+            <strong>{step.label}</strong><small>{step.meta}</small>
+          </div>
+        ))}
+      </div>
+      <div className="admin-route-note"><span /> {progress === 4 ? "Laporan telah dinyatakan selesai." : `Laporan sedang berada pada tahap ${steps[progress]?.label?.toLowerCase() || "diterima"}.`}</div>
+    </section>
   );
 }
 
@@ -232,6 +325,7 @@ export default function AdminDashboard({ user, onExit }) {
   const [data, setData] = useState({ reports: [], reportCount: 0, assignments: [], volunteers: [], complaints: [], evidence: [] });
   const [activeView, setActiveView] = useState("desk");
   const [selectedReportId, setSelectedReportId] = useState(null);
+  const [detailTab, setDetailTab] = useState("overview");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
@@ -242,6 +336,7 @@ export default function AdminDashboard({ user, onExit }) {
     try { return window.localStorage.getItem("tuntas-admin-theme") === "light" ? "light" : "dark"; }
     catch { return "dark"; }
   });
+  const [themeTransitionKey, setThemeTransitionKey] = useState(0);
 
   const loadDashboard = useCallback(async () => {
     if (!supabase) {
@@ -390,6 +485,7 @@ export default function AdminDashboard({ user, onExit }) {
 
   function openReport(report) {
     setSelectedReportId(report.id);
+    setDetailTab("overview");
     setActiveView("detail");
   }
 
@@ -417,23 +513,26 @@ export default function AdminDashboard({ user, onExit }) {
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Admin";
 
   function renderDesk() {
+    const dateLabel = new Intl.DateTimeFormat("id-ID", {
+      weekday: "long", day: "numeric", month: "long",
+    }).format(new Date());
     return (
       <>
         <div className="admin-greeting">
           <div>
-            <span className="admin-overline"><span className="admin-live-dot" /> TUNTAS CIVIC WORKSPACE</span>
-            <h1>{greeting}, {displayName}.</h1>
-            <p>{metrics.newReports} laporan baru perlu ditinjau. Ada {metrics.waitingVerification} bukti lapangan menunggu verifikasi.</p>
+            <span className="admin-overline"><span className="admin-live-dot" /> {dateLabel} · PUSAT KENDALI TUNTAS</span>
+            <h1>{greeting}, {displayName}</h1>
+            <p>{metrics.newReports} laporan baru menunggu ditinjau. {metrics.waitingVerification} bukti relawan perlu diperiksa sebelum masalah dinyatakan selesai.</p>
           </div>
           <div className="admin-greeting-actions">
-            <button type="button" className="admin-button admin-button-quiet" onClick={() => setActiveView("pipeline")}>Buka pipeline <ArrowUpRight size={15} /></button>
-            <button type="button" className="admin-button admin-button-primary" onClick={exportReports}><Download size={15} /> Ekspor data</button>
+            <button type="button" className="admin-button admin-button-quiet" onClick={() => setActiveView("pipeline")}>Pipeline <ArrowUpRight size={15} /></button>
+            <button type="button" className="admin-button admin-button-primary" onClick={() => setActiveView("reports")}><span aria-hidden="true">＋</span> Laporan masuk</button>
           </div>
         </div>
 
         <div className="admin-metrics-grid">
-          <MetricCard icon={FileText} label="Total laporan" value={metrics.totalReports} note="Laporan tersimpan" tone="teal" trend="DATA" />
-          <MetricCard icon={Clock3} label="Belum ditangani" value={metrics.newReports} note="Menunggu tindak lanjut" tone="gold" />
+          <MetricCard icon={FileText} label="Laporan masuk" value={metrics.totalReports} note="Total laporan warga tersimpan" tone="teal" trend="TOTAL" />
+          <MetricCard icon={Clock3} label="Menunggu tindakan" value={metrics.newReports} note="Perlu segera ditinjau" tone="gold" />
           <MetricCard icon={Activity} label="Prioritas tinggi" value={metrics.highPriority} note="Belum dinyatakan selesai" tone="blue" />
           <MetricCard icon={Users} label="Relawan aktif" value={metrics.activeVolunteers} note={`${metrics.volunteerCount} profil terdaftar`} tone="coral" />
         </div>
@@ -445,8 +544,8 @@ export default function AdminDashboard({ user, onExit }) {
 
         <section className="admin-panel admin-recent-panel">
           <div className="admin-panel-heading">
-            <div><span className="admin-overline">PEMANTAUAN TERBARU</span><h2>Laporan masuk</h2><p>Ringkasan masalah terbaru dari warga.</p></div>
-            <button type="button" className="admin-text-button" onClick={() => setActiveView("reports")}>Semua laporan <ArrowUpRight size={14} /></button>
+            <div><span className="admin-overline">AKTIVITAS TERKINI</span><h2>Laporan yang baru masuk</h2><p>Ikuti perkembangan laporan warga dan tindak lanjut di lapangan.</p></div>
+            <button type="button" className="admin-text-button" onClick={() => setActiveView("reports")}>Lihat semua <ArrowUpRight size={14} /></button>
           </div>
           {data.reports.length === 0 ? (
             <div className="admin-empty"><FileText size={20} /><strong>Belum ada laporan.</strong><span>Laporan baru akan tampil di sini.</span></div>
@@ -535,25 +634,42 @@ export default function AdminDashboard({ user, onExit }) {
       is_initial: true,
       created_at: selectedReport.created_at,
     }];
+    const historyItems = [
+      { id: "report-created", title: "Laporan diterima", description: selectedReport.description || "Laporan warga dibuat", created_at: selectedReport.created_at },
+      ...reportComplaints.filter((item) => !item.is_initial).map((item) => ({ id: `complaint-${item.id}`, title: "Keluhan tambahan digabungkan", description: item.description, created_at: item.created_at })),
+      ...(assignment?.claimed_at ? [{ id: "assignment-claimed", title: "Relawan mengambil tugas", description: volunteer?.full_name || "Relawan TUNTAS", created_at: assignment.claimed_at }] : []),
+      ...(assignment?.submitted_at ? [{ id: "assignment-submitted", title: "Bukti pekerjaan dikirim", description: volunteer?.full_name || "Relawan mengirim bukti", created_at: assignment.submitted_at }] : []),
+      ...(assignment?.reviewed_at ? [{ id: "assignment-reviewed", title: assignment.status === "verified" ? "Bukti diverifikasi" : "Bukti perlu diperbaiki", description: assignment.review_note || "Pemeriksaan admin", created_at: assignment.reviewed_at }] : []),
+      ...evidence.map((item) => ({ id: `evidence-${item.id}`, title: "Catatan bukti ditambahkan", description: item.note || "Relawan mengirim bukti lapangan", created_at: item.created_at })),
+    ].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+    const detailTabs = [
+      { id: "overview", label: "Ringkasan" },
+      { id: "handling", label: "Penanganan" },
+      { id: "complaints", label: "Keluhan" },
+      { id: "history", label: "Riwayat" },
+      { id: "evidence", label: "Bukti" },
+    ];
 
     return (
       <section className="admin-page-section">
         <button type="button" className="admin-back-button" onClick={() => setActiveView("reports")}><ArrowLeft size={15} /> Kembali ke laporan</button>
+        <nav className="admin-record-subnav" aria-label="Navigasi detail laporan">
+          {detailTabs.map((tab) => (
+            <button type="button" key={tab.id} className={detailTab === tab.id ? "active" : ""} onClick={() => setDetailTab(tab.id)}>
+              {tab.label}
+              {tab.id === "complaints" && <span>{reportComplaints.length}</span>}
+              {tab.id === "evidence" && <span>{evidence.length}</span>}
+            </button>
+          ))}
+        </nav>
         <div className="admin-detail-heading">
           <div><span className="admin-overline">RINCIAN LAPORAN</span><h1>{selectedReport.description || "Laporan warga"}</h1><p><MapPin size={14} /> {selectedReport.location || "Lokasi belum dicantumkan"}</p></div>
           <span className={`admin-pill stage-${stage}`}>{STAGE_LABELS[stage]}</span>
         </div>
-        <div className="admin-detail-timeline">
-          {["Diterima", "Dikerjakan", "Verifikasi", "Selesai"].map((step, index) => (
-            <div className={`admin-timeline-step ${index <= progress ? "is-complete" : ""} ${index === progress ? "is-current" : ""}`} key={step}>
-              <span>{index < progress ? <CheckCircle2 size={15} /> : index + 1}</span>
-              <strong>{step}</strong>
-              {index < 3 && <i />}
-            </div>
-          ))}
-        </div>
+        <AdminRouteTimeline progress={progress} />
 
-        <div className="admin-detail-grid">
+        <div className={`admin-detail-grid ${detailTab === "overview" ? "" : "is-hidden"}`}>
           <article className="admin-panel admin-detail-main">
             <div className="admin-panel-heading"><div><span className="admin-overline">INFORMASI MASALAH</span><h2>Gambaran laporan</h2></div><span className={`admin-pill priority-pill priority-${getPriorityLevel(selectedReport.priority)}`}>{priorityLabel(selectedReport.priority)}</span></div>
             <div className="admin-detail-facts">
@@ -596,6 +712,68 @@ export default function AdminDashboard({ user, onExit }) {
             </article>
           </aside>
         </div>
+
+        {detailTab === "handling" && (
+          <div className="admin-detail-grid admin-tab-content">
+            <article className="admin-panel admin-detail-main">
+              <div className="admin-panel-heading"><div><span className="admin-overline">LANGKAH TINDAK LANJUT</span><h2>Rencana penanganan</h2><p>Rekomendasi AI dan status kerja laporan ini.</p></div><span className={`admin-pill stage-${stage}`}>{STAGE_LABELS[stage]}</span></div>
+              <div className="admin-detail-copy"><span>REKOMENDASI</span><p>{selectedReport.recommendation || "Belum ada rekomendasi tersimpan."}</p></div>
+              <div className="admin-detail-copy"><span>RINGKASAN MASALAH</span><p>{selectedReport.summary || selectedReport.description || "Ringkasan belum tersedia."}</p></div>
+              <div className="admin-detail-facts">
+                <div><small>Prioritas</small><strong>{priorityLabel(selectedReport.priority)}</strong></div>
+                <div><small>Status sekarang</small><strong>{STAGE_LABELS[stage]}</strong></div>
+                <div><small>Keluhan tergabung</small><strong>{reportComplaints.length}</strong></div>
+                <div><small>Relawan ditugaskan</small><strong>{assignment ? "Sudah ditangani" : "Belum diambil"}</strong></div>
+              </div>
+            </article>
+            <aside className="admin-panel admin-detail-main">
+              <div className="admin-panel-heading"><div><span className="admin-overline">PELAKSANA</span><h2>Relawan penanggung jawab</h2></div><Users size={18} /></div>
+              {assignment ? <div className="admin-owner-card"><span className="admin-owner-avatar">{initials(volunteer?.full_name)}</span><div><strong>{volunteer?.full_name || "Relawan"}</strong><small>{volunteer?.phone || "Kontak belum dicantumkan"}</small></div></div> : <div className="admin-empty compact"><Users size={18} /><span>Belum ada relawan mengambil tugas ini.</span></div>}
+              {assignment?.status === "proof_submitted" && <button type="button" className="admin-button admin-button-primary admin-full-button" onClick={() => setActiveView("verification")}>Buka verifikasi <ArrowUpRight size={14} /></button>}
+            </aside>
+          </div>
+        )}
+
+        {detailTab === "complaints" && (
+          <section className="admin-panel admin-tab-list-panel">
+            <div className="admin-panel-heading"><div><span className="admin-overline">SUARA WARGA</span><h2>{reportComplaints.length} keluhan tergabung</h2><p>Semua keluhan tetap disimpan di bawah laporan utama ini.</p></div><span className="admin-mini-count">{reportComplaints.length}</span></div>
+            <div className="admin-complaint-list">
+              {reportComplaints.map((item) => (
+                <div className="admin-complaint-item" key={item.id}>
+                  <span className="admin-complaint-marker" />
+                  <div><p>{item.description || "Keluhan warga"}</p><small>{item.is_initial ? "Keluhan awal" : "Keluhan tambahan"} · {formatDate(item.created_at, true)}</small></div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {detailTab === "history" && (
+          <section className="admin-panel admin-tab-list-panel">
+            <div className="admin-panel-heading"><div><span className="admin-overline">JEJAK AKTIVITAS</span><h2>Riwayat laporan</h2><p>Urutan perubahan dan aktivitas yang tercatat pada laporan.</p></div><span className="admin-mini-count">{historyItems.length} aktivitas</span></div>
+            <div className="admin-history-list">
+              {historyItems.map((item) => (
+                <article className="admin-history-item" key={item.id}>
+                  <span className="admin-history-dot" />
+                  <div><strong>{item.title}</strong><p>{item.description || "Aktivitas TUNTAS"}</p><small>{formatDate(item.created_at, true)}</small></div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {detailTab === "evidence" && (
+          <section className="admin-panel admin-tab-list-panel">
+            <div className="admin-panel-heading"><div><span className="admin-overline">HASIL LAPANGAN</span><h2>Bukti dan catatan relawan</h2><p>Catatan yang dikirim untuk mendukung penyelesaian laporan.</p></div><span className="admin-mini-count">{evidence.length}</span></div>
+            {evidence.length === 0 ? (
+              <div className="admin-empty"><ShieldCheck size={20} /><strong>Belum ada bukti yang dikirim.</strong><span>Bukti relawan akan tampil di sini setelah tugas diperbarui.</span></div>
+            ) : (
+              <div className="admin-evidence-grid">
+                {evidence.map((item) => <article className="admin-evidence-card" key={item.id}><span className="admin-evidence-icon"><ShieldCheck size={16} /></span><div><strong>{item.note || "Bukti pekerjaan lapangan"}</strong><small>{formatDate(item.created_at, true)}</small></div></article>)}
+              </div>
+            )}
+          </section>
+        )}
       </section>
     );
   }
@@ -632,7 +810,8 @@ export default function AdminDashboard({ user, onExit }) {
 
   return (
     <main className={`admin-shell ${theme === "light" ? "is-light" : ""}`}>
-      <div className="admin-atmosphere" aria-hidden="true"><span /><i /></div>
+      <div className="admin-atmosphere" aria-hidden="true"><span /><i /><b /></div>
+      {themeTransitionKey > 0 && <div key={themeTransitionKey} className={`admin-theme-wipe ${theme === "light" ? "to-light" : "to-dark"}`} aria-hidden="true" />}
       <header className="admin-topbar">
         <button type="button" className="admin-brand" onClick={() => setActiveView("desk")} aria-label="TUNTAS Desk">
           <span className="admin-brand-mark">T</span>
@@ -647,8 +826,12 @@ export default function AdminDashboard({ user, onExit }) {
         </nav>
         <div className="admin-top-actions">
           <label className="admin-search admin-header-search"><Search size={15} /><input value={search} onChange={(event) => { setSearch(event.target.value); if (activeView === "desk") setActiveView("reports"); }} placeholder="Cari laporan..." aria-label="Cari laporan" /></label>
+          <button type="button" className="admin-new-button" onClick={onExit} title="Buka portal warga untuk membuat laporan baru"><span>＋</span> Laporan baru</button>
           <button type="button" className="admin-icon-button" onClick={() => void loadDashboard()} disabled={loading} aria-label="Segarkan data dashboard" title="Segarkan data"><RefreshCw size={16} className={loading ? "admin-refresh-spin" : ""} /></button>
-          <button type="button" className="admin-icon-button" onClick={() => setTheme((value) => value === "dark" ? "light" : "dark")} aria-label={theme === "dark" ? "Gunakan tema terang" : "Gunakan tema gelap"} title="Ganti tema">
+          <button type="button" className="admin-icon-button" onClick={() => {
+            setTheme((value) => value === "dark" ? "light" : "dark");
+            setThemeTransitionKey((value) => value + 1);
+          }} aria-label={theme === "dark" ? "Gunakan tema terang" : "Gunakan tema gelap"} title="Ganti tema">
             {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
           </button>
           <button type="button" className="admin-icon-button admin-notification-button" onClick={() => setActiveView("verification")} aria-label={`${pendingCount} bukti menunggu verifikasi`} title="Antrean verifikasi">
@@ -670,14 +853,14 @@ export default function AdminDashboard({ user, onExit }) {
         {loading && data.reports.length === 0 ? (
           <div className="admin-loading"><span /><strong>Menyiapkan dashboard TUNTAS...</strong><small>Mengambil data laporan dan aktivitas relawan.</small></div>
         ) : (
-          <>
+          <div className="admin-view-stage" key={`${activeView}-${selectedReportId || ""}`}>
             {activeView === "desk" && renderDesk()}
             {activeView === "pipeline" && renderPipeline()}
             {activeView === "reports" && renderReports()}
             {activeView === "detail" && renderDetail()}
             {activeView === "volunteers" && renderVolunteers()}
             {activeView === "verification" && <div className="admin-verification-view"><VolunteerCenter user={user} onAdminDataChanged={loadDashboard} /></div>}
-          </>
+          </div>
         )}
         <footer className="admin-footer"><span>TUNTAS · Civic Action Workspace</span><button type="button" onClick={onExit}>Kembali ke portal warga <ArrowUpRight size={13} /></button></footer>
       </div>
