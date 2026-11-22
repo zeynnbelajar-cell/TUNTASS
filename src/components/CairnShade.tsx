@@ -103,7 +103,7 @@ interface FontValue {
     textAlign?: string
 }
 
-const DEFAULT_TEXT = "TRUTH"
+const DEFAULT_TEXT = "ZEYNN"
 const DEFAULT_FONT: FontValue = {
     fontFamily: "Fira Sans Condensed",
     variant: "Black",

@@ -1610,10 +1610,10 @@ export default function App() {
             </div>
           )}
         </aside>
-        <div className="ai-visual-card" role="img" aria-label="Animasi huruf TRUTH bertumpuk">
+        <div className="ai-visual-card" role="img" aria-label="Animasi huruf ZEYNN bertumpuk">
           <React.Suspense fallback={<div className="ai-visual-loading" />}>
             <CairnShade
-              text="TRUTH"
+              text="ZEYNN"
               background="#000106"
               color="#FFFFFF"
               shadowColor="#5A5966"
