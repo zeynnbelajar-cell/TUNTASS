@@ -29,7 +29,7 @@ import { isNetworkUnavailable } from "./lib/networkStatus";
 
 import AuthPanel from "./components/AuthPanel";
 import VolunteerCenter from "./components/VolunteerCenter";
-import VenomButton from "./components/VenomButton";
+import MobileHaptics from "./components/MobileHaptics";
 
 import { isTuntasAdminUser } from "./lib/adminAccess";
 
@@ -1471,13 +1471,19 @@ export default function App() {
             </div>
           )}
 
-          <VenomButton
+          <MobileHaptics
             type="submit"
             label={loading ? "TUNTAS AI SEDANG MENJAWAB..." : "KIRIM KE TUNTAS AI"}
             disabled={loading || locationResolving}
-            gooColor="#07111B"
-            textColor="#F4FFFF"
-            size={58}
+            emojis={["🎉", "✨", "😄", "🔥", "💥", "⭐", "💖", "🤩", "👍", "🥳", "🎊", "😎"]}
+            burstCount={40}
+            power={13}
+            spread={55}
+            gravity={2}
+            emojiSize={31}
+            radius={20}
+            shakeIntensity={16}
+            autoBurst={false}
             style={{ minHeight: 74, padding: "0 4px" }}
           />
           <p className="privacy-note">
