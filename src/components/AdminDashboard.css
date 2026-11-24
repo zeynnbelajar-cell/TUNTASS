@@ -1151,3 +1151,75 @@
 .admin-shell.is-light .admin-meadow-background::after {
   background: linear-gradient(180deg, rgba(19, 31, 40, .12) 0%, rgba(19, 31, 40, .24) 55%, rgba(19, 31, 40, .38) 100%);
 }
+
+/* Selective glass surfaces — keep the MeadowBlush scene visible behind key cards. */
+.admin-shell .admin-metric {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.105), rgba(255,255,255,.025) 48%, rgba(8,24,27,.30)),
+    linear-gradient(140deg, color-mix(in srgb, var(--metric-bg) 72%, transparent), rgba(8,24,27,.34));
+  border-color: rgba(218,248,243,.22);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 14px 34px rgba(0,0,0,.16);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  backdrop-filter: blur(18px) saturate(135%);
+}
+.admin-shell .admin-chart-panel,
+.admin-shell .admin-attention-panel,
+.admin-shell .admin-recent-panel,
+.admin-shell .admin-volunteer-card,
+.admin-shell .admin-portfolio-stat,
+.admin-shell .admin-volunteer-profile-details,
+.admin-shell .admin-portfolio-task-panel,
+.admin-shell .admin-portfolio-side {
+  background: linear-gradient(145deg, rgba(255,255,255,.095), rgba(255,255,255,.025) 52%, rgba(7,22,25,.34));
+  border-color: rgba(218,248,243,.20);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.13), 0 16px 38px rgba(0,0,0,.15);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  backdrop-filter: blur(20px) saturate(140%);
+}
+.admin-shell .admin-volunteer-card {
+  transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease, background .22s ease;
+}
+.admin-shell .admin-volunteer-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(91,212,197,.48);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 20px 44px rgba(0,0,0,.23), 0 0 24px rgba(91,212,197,.08);
+}
+.admin-shell .admin-pipeline-column {
+  background: rgba(11,31,34,.52);
+  border-color: rgba(218,248,243,.18);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  backdrop-filter: blur(16px) saturate(130%);
+}
+.admin-shell .admin-pipeline-card {
+  background: linear-gradient(145deg, rgba(255,255,255,.10), rgba(255,255,255,.025) 60%, rgba(7,22,25,.28));
+  border-color: rgba(218,248,243,.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.10), 0 8px 20px rgba(0,0,0,.10);
+  -webkit-backdrop-filter: blur(14px) saturate(135%);
+  backdrop-filter: blur(14px) saturate(135%);
+}
+.admin-shell .admin-pipeline-card:hover {
+  background: linear-gradient(145deg, rgba(91,212,197,.16), rgba(255,255,255,.045));
+  border-color: rgba(91,212,197,.42);
+}
+.admin-shell.is-light .admin-metric,
+.admin-shell.is-light .admin-chart-panel,
+.admin-shell.is-light .admin-attention-panel,
+.admin-shell.is-light .admin-recent-panel,
+.admin-shell.is-light .admin-volunteer-card,
+.admin-shell.is-light .admin-portfolio-stat,
+.admin-shell.is-light .admin-volunteer-profile-details,
+.admin-shell.is-light .admin-portfolio-task-panel,
+.admin-shell.is-light .admin-portfolio-side {
+  background: linear-gradient(145deg, rgba(255,255,255,.76), rgba(255,255,255,.42));
+  border-color: rgba(255,255,255,.72);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 12px 32px rgba(30,55,48,.10);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .admin-shell .admin-metric,
+  .admin-shell .admin-chart-panel,
+  .admin-shell .admin-attention-panel,
+  .admin-shell .admin-recent-panel,
+  .admin-shell .admin-volunteer-card,
+  .admin-shell .admin-pipeline-column,
+  .admin-shell .admin-pipeline-card { -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
