@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 const DEFAULT_EMOJIS = ["🎉", "✨", "😄", "🔥", "💥", "⭐", "💖", "🤩", "👍", "🥳", "🎊", "😎"];
 
@@ -30,18 +31,18 @@ export default function MobileHaptics({
     const rect = buttonRef.current?.getBoundingClientRect();
     if (!rect) return;
 
-    // Ledakan bermula dari bibir atas tombol, menyembur ke atas dan melebar acak.
-    const originY = rect.top + 3;
-    const cone = Math.max(100, Math.min(155, spread));
+    // Titik awal berada DI DALAM tombol; tiap emoji menyembur ke atas dengan sudut acak.
+    const originY = rect.top + rect.height * 0.52;
+    const cone = Math.max(90, Math.min(150, spread));
     const next = Array.from({ length: Math.max(1, burstCount) }, (_, index) => {
       const angle = (-90 + (Math.random() - 0.5) * cone) * Math.PI / 180;
       const velocity = power * (0.75 + Math.random() * 0.9);
       return {
         id: `${Date.now()}-${index}-${Math.random()}`,
         emoji: emojis[Math.floor(Math.random() * emojis.length)] || "✨",
-        x: rect.left + rect.width * (0.12 + Math.random() * 0.76),
-        y: originY + (Math.random() - 0.5) * radius * 0.25,
-        vx: Math.cos(angle) * velocity + (Math.random() - 0.5) * 2.2,
+        x: rect.left + rect.width * (0.18 + Math.random() * 0.64),
+        y: originY + (Math.random() - 0.5) * Math.min(radius, 12),
+        vx: Math.cos(angle) * velocity + (Math.random() - 0.5) * 1.8,
         vy: Math.sin(angle) * velocity,
         rotation: Math.random() * 90 - 45,
         spin: (Math.random() - 0.5) * 18,
@@ -57,26 +58,31 @@ export default function MobileHaptics({
 
   useEffect(() => {
     let active = true;
-    const tick = () => {
+    let lastFrame = 0;
+    const tick = (time) => {
       if (!active) return;
-      const next = particlesRef.current
-        .map((particle) => ({
-          ...particle,
-          x: particle.x + particle.vx,
-          y: particle.y + particle.vy,
-          vx: particle.vx * 0.992,
-          vy: particle.vy + gravity * 0.16,
-          rotation: particle.rotation + particle.spin,
-        }))
-        .filter((particle) => (
-          particle.x > -particle.size * 2 &&
-          particle.x < window.innerWidth + particle.size * 2 &&
-          particle.y > -particle.size * 2 &&
-          particle.y < window.innerHeight + particle.size * 2
-        ));
+      const delta = lastFrame ? Math.min((time - lastFrame) / 16.67, 2) : 0;
+      lastFrame = time;
 
-      particlesRef.current = next;
-      setParticles(next);
+      if (delta > 0 && particlesRef.current.length) {
+        const next = particlesRef.current
+          .map((particle) => ({
+            ...particle,
+            x: particle.x + particle.vx * delta,
+            y: particle.y + particle.vy * delta,
+            vx: particle.vx * Math.pow(0.992, delta),
+            vy: particle.vy + gravity * 0.16 * delta,
+            rotation: particle.rotation + particle.spin * delta,
+          }))
+          .filter((particle) => (
+            particle.x > -particle.size * 2 &&
+            particle.x < window.innerWidth + particle.size * 2 &&
+            particle.y > -particle.size * 2 &&
+            particle.y < window.innerHeight + particle.size * 2
+          ));
+        particlesRef.current = next;
+        setParticles(next);
+      }
       frameRef.current = window.requestAnimationFrame(tick);
     };
 
@@ -105,33 +111,36 @@ export default function MobileHaptics({
     onClick?.(event);
   };
 
+  const particleLayer = (
+    <div aria-hidden="true" style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", overflow: "hidden", pointerEvents: "none", zIndex: 2147483000 }}>
+      {particles.map((particle) => (
+        <span
+          key={particle.id}
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            fontSize: particle.size,
+            lineHeight: 1,
+            opacity: 1,
+            color: "initial",
+            filter: "none",
+            textShadow: "none",
+            transform: `translate3d(${particle.x}px, ${particle.y}px, 0) rotate(${particle.rotation}deg)`,
+            transformOrigin: "center center",
+            willChange: "transform",
+            userSelect: "none",
+          }}
+        >
+          {particle.emoji}
+        </span>
+      ))}
+    </div>
+  );
+
   return (
     <>
-      <div aria-hidden="true" style={{ position: "fixed", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 99999 }}>
-        {particles.map((particle) => (
-          <span
-            key={particle.id}
-            style={{
-              position: "absolute",
-              left: 0,
-              top: 0,
-              fontSize: particle.size,
-              lineHeight: 1,
-              opacity: 1,
-              color: "initial",
-              filter: "none",
-              textShadow: "none",
-              transform: `translate(${particle.x}px, ${particle.y}px) rotate(${particle.rotation}deg)`,
-              transformOrigin: "center center",
-              willChange: "transform",
-              userSelect: "none",
-            }}
-          >
-            {particle.emoji}
-          </span>
-        ))}
-      </div>
-
+      {typeof document !== "undefined" && createPortal(particleLayer, document.body)}
       <div className="mobile-haptics-wrap" style={{ position: "relative", width: "100%", overflow: "visible" }}>
         <button
           ref={buttonRef}
