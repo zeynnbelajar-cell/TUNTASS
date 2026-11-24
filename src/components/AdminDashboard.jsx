@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+﻿import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Activity,
   ArrowLeft,
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import VolunteerCenter from "./VolunteerCenter";
+import MeadowBlush from "./MeadowBlush";
 import {
   PIPELINE_STAGES,
   buildChartPaths,
@@ -240,7 +241,7 @@ function ReportRow({ report, complaintCount, onSelect }) {
       </span>
       <span className="admin-report-meta">
         <span className={`admin-pill stage-${stage}`}>{STAGE_LABELS[stage]}</span>
-        <small>{complaintCount} keluhan · {formatDate(report.created_at)}</small>
+        <small>{complaintCount} keluhan Â· {formatDate(report.created_at)}</small>
       </span>
       <ChevronRight size={16} className="admin-row-arrow" />
     </button>
@@ -579,13 +580,13 @@ export default function AdminDashboard({ user, onExit }) {
       <>
         <div className="admin-greeting">
           <div>
-            <span className="admin-overline"><span className="admin-live-dot" /> {dateLabel} · PUSAT KENDALI TUNTAS</span>
+            <span className="admin-overline"><span className="admin-live-dot" /> {dateLabel} Â· PUSAT KENDALI TUNTAS</span>
             <h1>{greeting}, {displayName}</h1>
             <p>{metrics.newReports} laporan baru menunggu ditinjau. {metrics.waitingVerification} bukti relawan perlu diperiksa sebelum masalah dinyatakan selesai.</p>
           </div>
           <div className="admin-greeting-actions">
             <button type="button" className="admin-button admin-button-quiet" onClick={() => setActiveView("pipeline")}>Pipeline <ArrowUpRight size={15} /></button>
-            <button type="button" className="admin-button admin-button-primary" onClick={() => setActiveView("reports")}><span aria-hidden="true">＋</span> Laporan masuk</button>
+            <button type="button" className="admin-button admin-button-primary" onClick={() => setActiveView("reports")}><span aria-hidden="true">ï¼‹</span> Laporan masuk</button>
           </div>
         </div>
 
@@ -763,7 +764,7 @@ export default function AdminDashboard({ user, onExit }) {
                 {reportComplaints.slice(0, 5).map((item) => (
                   <div className="admin-complaint-item" key={item.id}>
                     <span className="admin-complaint-marker" />
-                    <div><p>{item.description || "Keluhan warga"}</p><small>{item.is_initial ? "Keluhan awal" : "Keluhan tambahan"} · {formatDate(item.created_at)}</small></div>
+                    <div><p>{item.description || "Keluhan warga"}</p><small>{item.is_initial ? "Keluhan awal" : "Keluhan tambahan"} Â· {formatDate(item.created_at)}</small></div>
                   </div>
                 ))}
               </div>
@@ -800,7 +801,7 @@ export default function AdminDashboard({ user, onExit }) {
               {reportComplaints.map((item) => (
                 <div className="admin-complaint-item" key={item.id}>
                   <span className="admin-complaint-marker" />
-                  <div><p>{item.description || "Keluhan warga"}</p><small>{item.is_initial ? "Keluhan awal" : "Keluhan tambahan"} · {formatDate(item.created_at, true)}</small></div>
+                  <div><p>{item.description || "Keluhan warga"}</p><small>{item.is_initial ? "Keluhan awal" : "Keluhan tambahan"} Â· {formatDate(item.created_at, true)}</small></div>
                 </div>
               ))}
             </div>
@@ -948,7 +949,7 @@ export default function AdminDashboard({ user, onExit }) {
                     <div className="admin-portfolio-task-copy">
                       <span className="admin-card-category">{report?.category || "Laporan TUNTAS"}</span>
                       <strong>{report?.description || "Rincian laporan tidak tersedia"}</strong>
-                      <small>{report?.location || "Lokasi tidak tersedia"} · {formatDate(assignment.claimed_at || assignment.created_at, true)}</small>
+                      <small>{report?.location || "Lokasi tidak tersedia"} Â· {formatDate(assignment.claimed_at || assignment.created_at, true)}</small>
                       {assignment.review_note && <p>Catatan verifikasi: {assignment.review_note}</p>}
                       <span className="admin-portfolio-task-meta">
                         <span className={`admin-pill stage-${assignmentStatusTone(assignment.status)}`}>{assignmentStatusLabel(assignment.status)}</span>
@@ -993,6 +994,9 @@ export default function AdminDashboard({ user, onExit }) {
 
   return (
     <main className={`admin-shell ${theme === "light" ? "is-light" : ""}`}>
+      <div className="admin-meadow-background" aria-hidden="true">
+        <MeadowBlush flowers={6} grass={7} wind={3} speed={0.7} depthBlur={2} haze={5} style={{ width: "100%", height: "100%", opacity: 0.94 }} />
+      </div>
       <div className="admin-atmosphere" aria-hidden="true">
         <span /><i /><b />
         <div className="admin-particle-field">
@@ -1024,7 +1028,7 @@ export default function AdminDashboard({ user, onExit }) {
         </nav>
         <div className="admin-top-actions">
           <label className="admin-search admin-header-search"><Search size={15} /><input value={search} onChange={(event) => { setSearch(event.target.value); if (activeView === "desk") setActiveView("reports"); }} placeholder="Cari laporan..." aria-label="Cari laporan" /></label>
-          <button type="button" className="admin-new-button" onClick={onExit} title="Buka portal warga untuk membuat laporan baru"><span>＋</span> Laporan baru</button>
+          <button type="button" className="admin-new-button" onClick={onExit} title="Buka portal warga untuk membuat laporan baru"><span>ï¼‹</span> Laporan baru</button>
           <button type="button" className="admin-icon-button" onClick={() => void loadDashboard()} disabled={loading} aria-label="Segarkan data dashboard" title="Segarkan data"><RefreshCw size={16} className={loading ? "admin-refresh-spin" : ""} /></button>
           <button type="button" className="admin-icon-button" onClick={() => {
             setTheme((value) => value === "dark" ? "light" : "dark");
@@ -1047,7 +1051,7 @@ export default function AdminDashboard({ user, onExit }) {
       </div>
 
       <div className="admin-content">
-        {refreshError && <div className="admin-alert"><Activity size={16} /><span>{refreshError}</span><button type="button" onClick={() => setRefreshError("")} aria-label="Tutup pesan">×</button></div>}
+        {refreshError && <div className="admin-alert"><Activity size={16} /><span>{refreshError}</span><button type="button" onClick={() => setRefreshError("")} aria-label="Tutup pesan">Ã—</button></div>}
         {loading && data.reports.length === 0 ? (
           <div className="admin-loading"><span /><strong>Menyiapkan dashboard TUNTAS...</strong><small>Mengambil data laporan dan aktivitas relawan.</small></div>
         ) : (
@@ -1061,8 +1065,9 @@ export default function AdminDashboard({ user, onExit }) {
             {activeView === "verification" && <div className="admin-verification-view"><VolunteerCenter user={user} onAdminDataChanged={loadDashboard} /></div>}
           </div>
         )}
-        <footer className="admin-footer"><span>TUNTAS · Civic Action Workspace</span><button type="button" onClick={onExit}>Kembali ke portal warga <ArrowUpRight size={13} /></button></footer>
+        <footer className="admin-footer"><span>TUNTAS Â· Civic Action Workspace</span><button type="button" onClick={onExit}>Kembali ke portal warga <ArrowUpRight size={13} /></button></footer>
       </div>
     </main>
   );
 }
+

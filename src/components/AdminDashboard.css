@@ -1129,3 +1129,25 @@
 /* Keep the dashboard cards readable while letting the meadow breathe through the glass. */
 .admin-panel{background:color-mix(in srgb,var(--admin-surface) 87%,transparent);backdrop-filter:blur(16px) saturate(1.12);}
 .admin-pipeline-card{background:linear-gradient(145deg,rgba(17,43,49,.9),rgba(11,29,35,.9));}
+
+/* Full-screen voxel sunset meadow backdrop for the admin workspace. */
+.admin-shell {
+  background: transparent;
+}
+.admin-meadow-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: #18242a;
+}
+.admin-meadow-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(5, 13, 22, .30) 0%, rgba(6, 16, 20, .48) 52%, rgba(5, 14, 17, .68) 100%);
+}
+.admin-shell.is-light .admin-meadow-background::after {
+  background: linear-gradient(180deg, rgba(19, 31, 40, .12) 0%, rgba(19, 31, 40, .24) 55%, rgba(19, 31, 40, .38) 100%);
+}
