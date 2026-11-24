@@ -9,7 +9,7 @@ export default function MobileHaptics({
   emojis = DEFAULT_EMOJIS,
   burstCount = 40,
   power = 13,
-  spread = 55,
+  spread = 125,
   gravity = 2,
   emojiSize = 31,
   radius = 20,
@@ -30,17 +30,18 @@ export default function MobileHaptics({
     const rect = buttonRef.current?.getBoundingClientRect();
     if (!rect) return;
 
-    const originX = rect.left + rect.width / 2;
-    const originY = rect.top + rect.height / 2;
+    // Ledakan bermula dari bibir atas tombol, menyembur ke atas dan melebar acak.
+    const originY = rect.top + 3;
+    const cone = Math.max(100, Math.min(155, spread));
     const next = Array.from({ length: Math.max(1, burstCount) }, (_, index) => {
-      const angle = (-Math.PI / 2) + ((Math.random() - 0.5) * spread * Math.PI / 180) + (index / burstCount) * 0.18;
-      const velocity = power * (0.65 + Math.random() * 0.7);
+      const angle = (-90 + (Math.random() - 0.5) * cone) * Math.PI / 180;
+      const velocity = power * (0.75 + Math.random() * 0.9);
       return {
         id: `${Date.now()}-${index}-${Math.random()}`,
         emoji: emojis[Math.floor(Math.random() * emojis.length)] || "✨",
-        x: originX + (Math.random() - 0.5) * radius,
-        y: originY,
-        vx: Math.cos(angle) * velocity,
+        x: rect.left + rect.width * (0.12 + Math.random() * 0.76),
+        y: originY + (Math.random() - 0.5) * radius * 0.25,
+        vx: Math.cos(angle) * velocity + (Math.random() - 0.5) * 2.2,
         vy: Math.sin(angle) * velocity,
         rotation: Math.random() * 90 - 45,
         spin: (Math.random() - 0.5) * 18,
@@ -48,7 +49,6 @@ export default function MobileHaptics({
       };
     });
 
-    // Partikel tetap hidup sampai benar-benar keluar dari area layar.
     particlesRef.current = [...particlesRef.current, ...next];
     setParticles([...particlesRef.current]);
     setShaking(true);
@@ -59,14 +59,13 @@ export default function MobileHaptics({
     let active = true;
     const tick = () => {
       if (!active) return;
-
       const next = particlesRef.current
         .map((particle) => ({
           ...particle,
           x: particle.x + particle.vx,
           y: particle.y + particle.vy,
-          vx: particle.vx * 0.985,
-          vy: particle.vy + gravity * 0.12,
+          vx: particle.vx * 0.992,
+          vy: particle.vy + gravity * 0.16,
           rotation: particle.rotation + particle.spin,
         }))
         .filter((particle) => (
@@ -108,16 +107,7 @@ export default function MobileHaptics({
 
   return (
     <>
-      <div
-        aria-hidden="true"
-        style={{
-          position: "fixed",
-          inset: 0,
-          overflow: "hidden",
-          pointerEvents: "none",
-          zIndex: 99999,
-        }}
-      >
+      <div aria-hidden="true" style={{ position: "fixed", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 99999 }}>
         {particles.map((particle) => (
           <span
             key={particle.id}
