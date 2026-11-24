@@ -24,25 +24,32 @@ export default function MobileHaptics({
   const frameRef = useRef(0);
   const particlesRef = useRef([]);
   const lastAutoBurst = useRef(0);
+  const buttonRef = useRef(null);
 
   const burst = useCallback(() => {
+    const rect = buttonRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const originX = rect.left + rect.width / 2;
+    const originY = rect.top + rect.height / 2;
     const next = Array.from({ length: Math.max(1, burstCount) }, (_, index) => {
       const angle = (-Math.PI / 2) + ((Math.random() - 0.5) * spread * Math.PI / 180) + (index / burstCount) * 0.18;
       const velocity = power * (0.65 + Math.random() * 0.7);
       return {
         id: `${Date.now()}-${index}-${Math.random()}`,
         emoji: emojis[Math.floor(Math.random() * emojis.length)] || "✨",
-        x: (Math.random() - 0.5) * radius,
-        y: 0,
+        x: originX + (Math.random() - 0.5) * radius,
+        y: originY,
         vx: Math.cos(angle) * velocity,
         vy: Math.sin(angle) * velocity,
         rotation: Math.random() * 90 - 45,
         spin: (Math.random() - 0.5) * 18,
-        life: 1,
         size: emojiSize * (0.75 + Math.random() * 0.55),
       };
     });
-    particlesRef.current = [...particlesRef.current, ...next].slice(-120);
+
+    // Partikel tetap hidup sampai benar-benar keluar dari area layar.
+    particlesRef.current = [...particlesRef.current, ...next];
     setParticles([...particlesRef.current]);
     setShaking(true);
     window.setTimeout(() => setShaking(false), 360);
@@ -52,6 +59,7 @@ export default function MobileHaptics({
     let active = true;
     const tick = () => {
       if (!active) return;
+
       const next = particlesRef.current
         .map((particle) => ({
           ...particle,
@@ -60,13 +68,19 @@ export default function MobileHaptics({
           vx: particle.vx * 0.985,
           vy: particle.vy + gravity * 0.12,
           rotation: particle.rotation + particle.spin,
-          life: particle.life - 0.014,
         }))
-        .filter((particle) => particle.life > 0);
+        .filter((particle) => (
+          particle.x > -particle.size * 2 &&
+          particle.x < window.innerWidth + particle.size * 2 &&
+          particle.y > -particle.size * 2 &&
+          particle.y < window.innerHeight + particle.size * 2
+        ));
+
       particlesRef.current = next;
       setParticles(next);
       frameRef.current = window.requestAnimationFrame(tick);
     };
+
     frameRef.current = window.requestAnimationFrame(tick);
     return () => {
       active = false;
@@ -93,53 +107,70 @@ export default function MobileHaptics({
   };
 
   return (
-    <div className="mobile-haptics-wrap" style={{ position: "relative", width: "100%", overflow: "visible" }}>
-      <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "visible", pointerEvents: "none", zIndex: 5 }}>
+    <>
+      <div
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          inset: 0,
+          overflow: "hidden",
+          pointerEvents: "none",
+          zIndex: 99999,
+        }}
+      >
         {particles.map((particle) => (
           <span
             key={particle.id}
             style={{
               position: "absolute",
-              left: "50%",
-              top: "50%",
+              left: 0,
+              top: 0,
               fontSize: particle.size,
               lineHeight: 1,
-              opacity: Math.max(0, particle.life),
+              opacity: 1,
+              color: "initial",
+              filter: "none",
+              textShadow: "none",
               transform: `translate(${particle.x}px, ${particle.y}px) rotate(${particle.rotation}deg)`,
-              filter: "drop-shadow(0 3px 5px rgba(0,0,0,.25))",
-              willChange: "transform, opacity",
+              transformOrigin: "center center",
+              willChange: "transform",
+              userSelect: "none",
             }}
           >
             {particle.emoji}
           </span>
         ))}
       </div>
-      <button
-        type={type}
-        disabled={disabled}
-        onClick={handleClick}
-        className="mobile-haptics-button"
-        style={{
-          width: "100%",
-          minHeight: 74,
-          padding: "0 18px",
-          border: "1px solid rgba(112,255,207,.65)",
-          borderRadius: 999,
-          background: "linear-gradient(135deg, #07111b 0%, #102b32 55%, #07111b 100%)",
-          color: "#F4FFFF",
-          fontWeight: 900,
-          fontSize: "clamp(12px, 2vw, 15px)",
-          letterSpacing: ".12em",
-          cursor: disabled ? "not-allowed" : "pointer",
-          boxShadow: "0 0 22px rgba(47,255,190,.18), inset 0 1px 0 rgba(255,255,255,.12)",
-          transition: "transform .12s ease, opacity .2s ease, box-shadow .2s ease",
-          transform: shaking ? `translate(${(Math.random() - .5) * shakeIntensity}px, ${(Math.random() - .5) * shakeIntensity}px) scale(1.015)` : "translate(0,0) scale(1)",
-          opacity: disabled ? .58 : 1,
-          ...style,
-        }}
-      >
-        {label}
-      </button>
-    </div>
+
+      <div className="mobile-haptics-wrap" style={{ position: "relative", width: "100%", overflow: "visible" }}>
+        <button
+          ref={buttonRef}
+          type={type}
+          disabled={disabled}
+          onClick={handleClick}
+          className="mobile-haptics-button"
+          style={{
+            width: "100%",
+            minHeight: 74,
+            padding: "0 18px",
+            border: "1px solid rgba(112,255,207,.65)",
+            borderRadius: 999,
+            background: "linear-gradient(135deg, #07111b 0%, #102b32 55%, #07111b 100%)",
+            color: "#F4FFFF",
+            fontWeight: 900,
+            fontSize: "clamp(12px, 2vw, 15px)",
+            letterSpacing: ".12em",
+            cursor: disabled ? "not-allowed" : "pointer",
+            boxShadow: "0 0 22px rgba(47,255,190,.18), inset 0 1px 0 rgba(255,255,255,.12)",
+            transition: "transform .12s ease, opacity .2s ease, box-shadow .2s ease",
+            transform: shaking ? `translate(${(Math.random() - .5) * shakeIntensity}px, ${(Math.random() - .5) * shakeIntensity}px) scale(1.015)` : "translate(0,0) scale(1)",
+            opacity: disabled ? .58 : 1,
+            ...style,
+          }}
+        >
+          {label}
+        </button>
+      </div>
+    </>
   );
 }
