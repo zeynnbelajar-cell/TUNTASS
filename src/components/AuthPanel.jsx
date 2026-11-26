@@ -65,11 +65,9 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
     setIsSliding(true);
     transitionTimer.current = window.setTimeout(() => {
       setCopyMode(nextMode);
-      transitionTimer.current = window.setTimeout(() => {
-        setIsSliding(false);
-        transitionTimer.current = null;
-      }, AUTH_SLIDE_DURATION_MS / 2);
-    }, AUTH_SLIDE_DURATION_MS / 2);
+      setIsSliding(false);
+      transitionTimer.current = null;
+    }, AUTH_SLIDE_DURATION_MS);
   }
 
   async function submit(event) {
