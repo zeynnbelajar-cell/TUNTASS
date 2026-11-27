@@ -2267,3 +2267,13 @@ body.task-dashboard-open{
   .task-dashboard-backdrop{padding:0!important}
   .task-dashboard-layout{display:flex!important;flex-direction:column!important}
 }
+
+/* User-requested full-screen Cek tugas correction */
+body:has(.task-dashboard-backdrop) .topbar{display:none!important}
+body:has(.task-dashboard-backdrop){overflow:hidden!important}
+.task-dashboard-backdrop{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;z-index:2147483000!important;box-sizing:border-box!important;padding:10px!important;margin:0!important;display:block!important;overflow:hidden!important}
+.task-dashboard{width:100%!important;max-width:none!important;min-width:0!important;height:100%!important;max-height:none!important;margin:0!important;box-sizing:border-box!important}
+.task-dashboard-layout{display:grid!important;width:100%!important;max-width:none!important;height:100%!important;min-height:0!important;grid-template-columns:minmax(190px,18vw) minmax(0,1fr) minmax(245px,23vw)!important;grid-template-rows:minmax(0,1fr)!important;gap:clamp(10px,1.1vw,18px)!important;overflow:hidden!important}
+.task-dashboard-sidebar,.task-dashboard-scroll,.task-dashboard-rail{display:block!important;min-width:0!important;min-height:0!important;height:100%!important;max-height:100%!important;box-sizing:border-box!important}
+.task-dashboard-scroll,.task-dashboard-rail{overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important}
+@media(max-width:720px){.task-dashboard-backdrop{padding:0!important}.task-dashboard{border-radius:0!important}.task-dashboard-layout{display:flex!important;flex-direction:column!important;gap:0!important}.task-dashboard-sidebar{flex:0 0 56px!important;height:56px!important;max-height:56px!important;overflow-x:auto!important;overflow-y:hidden!important}.task-dashboard-scroll{flex:1 1 0!important;height:0!important;max-height:none!important;padding:14px!important}.task-dashboard-rail{display:none!important}}
