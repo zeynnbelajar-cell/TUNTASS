@@ -296,6 +296,14 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
               <button
                 type="button"
                 className={`auth-visual ${isTargetLogin ? "is-login" : "is-register"}`}
+                style={{
+                  position: "absolute", top: 0, bottom: 0, left: 0,
+                  width: "50%", height: "100%", zIndex: 2, display: "flex",
+                  alignItems: "center", justifyContent: "center",
+                  flexDirection: "column", opacity: 1, visibility: "visible",
+                  background: "linear-gradient(145deg,#ff4b69 0%,#f02d55 58%,#df234c 100%)",
+                  color: "#fff"
+                }}
                 aria-label={passwordFlow === "none"
                   ? (isCopyLogin ? "Geser panel merah untuk daftar" : "Geser panel merah untuk masuk")
                   : "Panel pemulihan kata sandi"}
@@ -334,7 +342,16 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
                 {passwordFlow === "none" && <span className="auth-mode-cta">{isCopyLogin ? "Sign Up" : "Sign In"}</span>}
               </button>
 
-              <div className={`auth-form-side ${isTargetLogin ? "is-login" : "is-register"}`}>
+              <div
+                className={`auth-form-side ${isTargetLogin ? "is-login" : "is-register"}`}
+                style={{
+                  position: "absolute", top: 0, bottom: 0, left: 0,
+                  width: "50%", height: "100%", zIndex: 1, display: "grid",
+                  alignContent: "center", opacity: 1, visibility: "visible",
+                  background: "linear-gradient(155deg,#fff 0%,#fcfbfd 100%)",
+                  color: "#252234", overflowY: "auto"
+                }}
+              >
                 <div className="auth-form-heading">
                   <span>
                     {isPasswordResetRequest ? "ACCOUNT RECOVERY" : isPasswordResetUpdate ? "SECURE YOUR ACCOUNT" : isCopyLogin ? "WELCOME BACK" : "GET STARTED"}
