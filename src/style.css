@@ -2160,3 +2160,110 @@ body{background:#030712}
   .task-dashboard-scroll{flex:1 1 0!important;height:0!important;min-height:0!important;max-height:none!important;padding:13px!important;overflow-y:auto!important}
   .task-dashboard-rail{display:none!important}
 }
+
+/* Cek tugas is a true full-screen workspace: hide the site menu and use all viewport space. */
+body:has(.task-dashboard-backdrop) .topbar{display:none!important}
+body:has(.task-dashboard-backdrop){overflow:hidden!important}
+.task-dashboard-backdrop{
+  position:fixed!important;inset:0!important;z-index:20000!important;
+  width:100vw!important;height:100dvh!important;max-width:none!important;
+  margin:0!important;padding:12px!important;box-sizing:border-box!important;
+  display:grid!important;place-items:stretch!important;
+  background:rgba(3,7,12,.58)!important;
+}
+.task-dashboard{
+  width:100%!important;max-width:none!important;
+  height:100%!important;max-height:none!important;min-height:0!important;
+  margin:0!important;border-radius:22px!important;
+}
+.task-dashboard-layout{
+  width:100%!important;height:100%!important;min-height:0!important;
+  grid-template-columns:minmax(210px,17vw) minmax(0,1fr) minmax(260px,22vw)!important;
+  grid-template-rows:minmax(0,1fr)!important;
+  gap:14px!important;overflow:hidden!important;
+}
+.task-dashboard-sidebar,.task-dashboard-scroll,.task-dashboard-rail{min-width:0!important;min-height:0!important}
+.task-dashboard-sidebar,.task-dashboard-scroll,.task-dashboard-rail{height:100%!important;max-height:100%!important}
+.task-dashboard-scroll,.task-dashboard-rail{overflow-y:auto!important;overscroll-behavior:contain!important}
+.task-dashboard-scroll{width:100%!important;max-width:none!important}
+@media(max-width:1050px){
+ .task-dashboard-backdrop{padding:7px!important}
+ .task-dashboard-layout{grid-template-columns: minmax(145px,22vw) minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr) auto!important}
+ .task-dashboard-sidebar{grid-row:1/-1!important}
+ .task-dashboard-scroll{grid-column:2!important;grid-row:1!important}
+ .task-dashboard-rail{grid-column:2!important;grid-row:2!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;height:auto!important;max-height:none!important;overflow:visible!important}
+}
+@media(max-width:700px){
+ .task-dashboard-backdrop{padding:0!important}
+ .task-dashboard{border-radius:0!important}
+ .task-dashboard-layout{display:flex!important;flex-direction:column!important;gap:0!important}
+ .task-dashboard-sidebar{flex:0 0 56px!important;height:56px!important;max-height:56px!important;overflow-x:auto!important;overflow-y:hidden!important}
+ .task-dashboard-scroll{flex:1 1 0!important;height:0!important;max-height:none!important;padding:14px!important}
+ .task-dashboard-rail{display:none!important}
+}
+
+/* Full-screen Cek Tugas: use the entire available display and hide site navigation */
+body.task-dashboard-open .topbar{
+  display:none!important;
+}
+body.task-dashboard-open{
+  overflow:hidden!important;
+}
+.task-dashboard-backdrop{
+  position:fixed!important;
+  inset:0!important;
+  z-index:10000!important;
+  width:100vw!important;
+  height:100vh!important;
+  height:100dvh!important;
+  box-sizing:border-box!important;
+  padding:clamp(10px,1.4vw,22px)!important;
+  margin:0!important;
+  display:block!important;
+  overflow:hidden!important;
+}
+.task-dashboard{
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  height:100%!important;
+  max-height:none!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+}
+.task-dashboard-layout{
+  width:100%!important;
+  max-width:none!important;
+  height:100%!important;
+  min-height:0!important;
+  box-sizing:border-box!important;
+  grid-template-columns:minmax(205px,21vw) minmax(0,1fr) minmax(260px,24vw)!important;
+  gap:clamp(10px,1.15vw,18px)!important;
+  overflow:hidden!important;
+}
+.task-dashboard-sidebar,
+.task-dashboard-scroll,
+.task-dashboard-rail{
+  min-width:0!important;
+  max-width:none!important;
+}
+.task-dashboard-sidebar{height:100%!important;overflow-y:auto!important}
+.task-dashboard-scroll{
+  height:100%!important;max-height:100%!important;
+  overflow-x:hidden!important;overflow-y:auto!important;
+}
+.task-dashboard-rail{
+  height:100%!important;max-height:100%!important;
+  overflow-y:auto!important;overflow-x:hidden!important;
+  align-content:start!important;
+}
+@media(max-width:1050px) and (min-width:721px){
+  .task-dashboard-layout{
+    grid-template-columns:170px minmax(0,1fr)!important;
+    grid-template-rows:minmax(0,1fr) auto!important;
+  }
+}
+@media(max-width:720px){
+  .task-dashboard-backdrop{padding:0!important}
+  .task-dashboard-layout{display:flex!important;flex-direction:column!important}
+}

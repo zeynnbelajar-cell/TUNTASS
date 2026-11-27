@@ -36,6 +36,15 @@ export default function TaskDashboard({ report, assignment, onClose }) {
   const [error, setError] = useState("");
   const [clock, setClock] = useState(Date.now());
   useEffect(() => {
+    document.body.classList.add("task-dashboard-open");
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.classList.remove("task-dashboard-open");
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+  useEffect(() => {
     const timer = window.setInterval(() => setClock(Date.now()), 60000);
     return () => window.clearInterval(timer);
   }, []);
