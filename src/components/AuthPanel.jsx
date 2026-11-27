@@ -11,7 +11,6 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
   const [copyMode, setCopyMode] = useState("register");
   const [isSliding, setIsSliding] = useState(false);
   const transitionTimer = useRef(null);
-  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -81,10 +80,8 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
       setError("Supabase belum dikonfigurasi. Periksa konfigurasi aplikasi.");
       return;
     }
-    if ((mode === "register" && !fullName.trim()) || !email.trim() || password.length < 8) {
-      setError(mode === "register"
-        ? "Lengkapi nama, email yang valid, dan kata sandi minimal 8 karakter."
-        : "Masukkan email yang valid dan kata sandi minimal 8 karakter.");
+    if (!email.trim() || password.length < 8) {
+      setError("Masukkan email yang valid dan kata sandi minimal 8 karakter.");
       return;
     }
 
@@ -96,7 +93,6 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
           password,
           options: {
             emailRedirectTo: new URL(import.meta.env.BASE_URL, window.location.origin).href,
-            data: { full_name: fullName.trim() },
           },
         });
         if (authError) throw authError;
@@ -351,22 +347,6 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
                 >
                   {!isPasswordResetUpdate && (
                     <>
-                      {!isLogin && !isPasswordResetRequest && (
-                        <>
-                          <label htmlFor="auth-full-name">Nama pengguna</label>
-                          <input
-                            id="auth-full-name"
-                            type="text"
-                            autoComplete="name"
-                            value={fullName}
-                            onChange={(event) => setFullName(event.target.value)}
-                            placeholder="Nama lengkap"
-                            maxLength={80}
-                            disabled={busy || isSliding}
-                            required
-                          />
-                        </>
-                      )}
                       <label htmlFor="auth-email">Alamat email</label>
                       <input
                         id="auth-email"
