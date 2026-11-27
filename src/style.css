@@ -2232,3 +2232,78 @@ body{background:#030712}
   .auth-entry .auth-card .auth-visual,
   .auth-entry .auth-card .auth-form-side{transition:none!important}
 }
+
+
+/* AUTH CURTAIN — paired diagonal fabric panels, midpoint content swap. */
+.auth-entry .auth-card{
+  position:relative!important;
+  isolation:isolate!important;
+  overflow:hidden!important;
+}
+.auth-entry .auth-card::before,
+.auth-entry .auth-card::after{
+  content:""!important;
+  position:absolute!important;
+  inset:-1px!important;
+  z-index:40!important;
+  display:block!important;
+  width:auto!important;
+  height:auto!important;
+  opacity:1!important;
+  pointer-events:none!important;
+  transform:none!important;
+  will-change:clip-path!important;
+  background:
+    linear-gradient(112deg,rgba(255,255,255,.075) 0%,transparent 22%,rgba(0,0,0,.12) 72%,rgba(0,0,0,.22) 100%),
+    repeating-linear-gradient(108deg,rgba(255,255,255,.025) 0 1px,transparent 1px 8px),
+    linear-gradient(145deg,#086047 0%,#064632 48%,#022c22 100%)!important;
+  box-shadow:inset 0 0 34px rgba(0,0,0,.16)!important;
+  clip-path:polygon(0 0,0 0,0 100%,0 100%)!important;
+}
+.auth-entry .auth-card::before{
+  border-right:1px solid rgba(224,190,105,.88)!important;
+}
+.auth-entry .auth-card::after{
+  border-left:1px solid rgba(224,190,105,.72)!important;
+}
+.auth-entry .auth-card.is-transitioning::before,
+.auth-entry .auth-card.is-transitioning::after{
+  animation-duration:1120ms!important;
+  animation-timing-function:cubic-bezier(.76,0,.18,1)!important;
+  animation-fill-mode:both!important;
+}
+.auth-entry .auth-card.is-transitioning::before{
+  animation-name:tuntas-curtain-left-diagonal!important;
+}
+.auth-entry .auth-card.is-transitioning::after{
+  animation-name:tuntas-curtain-right-diagonal!important;
+}
+/* The angled inner edges overlap slightly so no bright seam flashes at center. */
+@keyframes tuntas-curtain-left-diagonal{
+  0%,8%{clip-path:polygon(0 0,0 0,0 100%,0 100%)}
+  43%,57%{clip-path:polygon(0 0,59% 0,49% 100%,0 100%)}
+  100%{clip-path:polygon(0 0,0 0,0 100%,0 100%)}
+}
+@keyframes tuntas-curtain-right-diagonal{
+  0%,8%{clip-path:polygon(100% 0,100% 0,100% 100%,100% 100%)}
+  43%,57%{clip-path:polygon(41% 0,100% 0,100% 100%,51% 100%)}
+  100%{clip-path:polygon(100% 0,100% 0,100% 100%,100% 100%)}
+}
+/* Swap the login/register content only while both diagonal panels cover the card. */
+.auth-entry .auth-card .auth-visual,
+.auth-entry .auth-card .auth-form-side{
+  transition:none!important;
+  transform:none!important;
+  will-change:auto!important;
+}
+.auth-entry .auth-card .auth-visual{left:0!important}
+.auth-entry .auth-card .auth-visual.is-login{left:50%!important}
+.auth-entry .auth-card .auth-form-side{left:0!important}
+.auth-entry .auth-card .auth-form-side.is-login{left:0!important}
+.auth-entry .auth-card .auth-form-side:not(.is-login){left:50%!important}
+@media(prefers-reduced-motion:reduce){
+  .auth-entry .auth-card.is-transitioning::before,
+  .auth-entry .auth-card.is-transitioning::after{animation:none!important}
+  .auth-entry .auth-card .auth-visual,
+  .auth-entry .auth-card .auth-form-side{transition:none!important}
+}
