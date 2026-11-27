@@ -1294,3 +1294,38 @@ body{background:#030712}
   .auth-visual,.auth-form-side{padding:18px 14px}
   .auth-form-side{align-content:center}
 }
+
+
+/* Auth panel visibility/layout guard: keep both halves rendered after reveal. */
+.auth-entry.is-revealed{opacity:1!important;clip-path:none!important;transform:none!important}
+.auth-card{
+  position:relative!important;display:block!important;overflow:hidden!important;
+  min-height:410px!important;height:clamp(360px,42vw,410px)!important;
+  background:#fff!important;
+}
+.auth-card>.auth-visual,
+.auth-card>.auth-form-side{
+  position:absolute!important;top:0!important;bottom:0!important;left:0!important;
+  width:50%!important;height:100%!important;min-width:0!important;
+  visibility:visible!important;opacity:1!important;backface-visibility:hidden;
+}
+.auth-card>.auth-visual{
+  z-index:2!important;display:flex!important;align-items:center!important;
+  justify-content:center!important;flex-direction:column!important;
+  color:#fff!important;
+  background:linear-gradient(145deg,#ff4b69 0%,#f02d55 58%,#df234c 100%)!important;
+  transform:translate3d(0,0,0);
+}
+.auth-card>.auth-form-side{
+  z-index:1!important;display:grid!important;align-content:center!important;
+  overflow-y:auto!important;background:linear-gradient(155deg,#fff 0%,#fcfbfd 100%)!important;
+  color:#252234!important;transform:translate3d(100%,0,0);
+}
+.auth-card.is-login>.auth-visual{transform:translate3d(100%,0,0)!important}
+.auth-card.is-login>.auth-form-side{transform:translate3d(0,0,0)!important}
+.auth-card.is-register>.auth-visual{transform:translate3d(0,0,0)!important}
+.auth-card.is-register>.auth-form-side{transform:translate3d(100%,0,0)!important}
+@media(max-width:650px){
+  .auth-card{height:clamp(360px,94vw,440px)!important;min-height:360px!important}
+  .auth-card>.auth-visual,.auth-card>.auth-form-side{padding:15px 11px!important}
+}

@@ -260,7 +260,7 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
   const isPasswordResetUpdate = passwordFlow === "update";
 
   return (
-    <section className="auth-entry" aria-label="Akses relawan" data-mask-reveal>
+    <section className="auth-entry is-revealed" aria-label="Akses relawan">
       <div className="auth-entry-copy">
         <span className="eyebrow">IKUT AMBIL BAGIAN</span>
         <h2>Ubah laporan menjadi aksi.</h2>
