@@ -10,6 +10,7 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
   const [mode, setMode] = useState("register");
   const [copyMode, setCopyMode] = useState("register");
   const [isSliding, setIsSliding] = useState(false);
+  const [transitionPhase, setTransitionPhase] = useState("idle");
   const transitionTimer = useRef(null);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -55,17 +56,27 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
     setConfirmPassword("");
 
     const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    setMode(nextMode);
 
     if (reduceMotion) {
+      setMode(nextMode);
       setCopyMode(nextMode);
+      setTransitionPhase("idle");
       return;
     }
 
+    // Phase 1: the red panel travels to the exact center while the current
+    // Login/Register content and its controls remain unchanged.
     setIsSliding(true);
+    setTransitionPhase("cover");
     transitionTimer.current = window.setTimeout(() => {
+      // Midpoint: only now exchange the form, copy, field set and action.
+      setMode(nextMode);
       setCopyMode(nextMode);
+      setTransitionPhase("reveal");
+
+      // Phase 2: continue the same panel movement from center to its endpoint.
       transitionTimer.current = window.setTimeout(() => {
+        setTransitionPhase("idle");
         setIsSliding(false);
         transitionTimer.current = null;
       }, AUTH_SLIDE_DURATION_MS / 2);
@@ -292,7 +303,7 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
           inert={!open}
         >
           <div className="auth-dropdown-inner">
-            <div className={`auth-card ${isTargetLogin ? "is-login" : "is-register"}`}>
+            <div className={`auth-card ${isTargetLogin ? "is-login" : "is-register"} ${transitionPhase !== "idle" ? `is-${transitionPhase}` : ""}`}>
               <button
                 type="button"
                 className={`auth-visual ${isTargetLogin ? "is-login" : "is-register"}`}
