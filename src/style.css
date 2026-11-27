@@ -1594,3 +1594,45 @@ body{background:#030712}
 .task-rail-chart i:nth-child(6){height:100%}
 .task-rail-chart i:nth-child(7){height:72%}
 @media(max-width:900px){.task-rail-chart{height:38px}}
+
+/* Keep the primary TUNTAS navigation visible and usable while Cek Tugas is open. */
+.topbar{
+  position:relative!important;
+  z-index:2147483002!important;
+}
+.task-dashboard-backdrop{
+  inset:clamp(78px,8.5vh,96px) 0 14px 0!important;
+  padding:clamp(8px,1.4vw,20px)!important;
+  align-items:stretch!important;
+  justify-items:center!important;
+}
+.task-dashboard{
+  width:min(1480px,calc(100vw - 28px))!important;
+  height:100%!important;
+  max-height:none!important;
+}
+.task-dashboard-layout{
+  height:100%!important;
+  min-height:0!important;
+}
+.task-dashboard-scroll{
+  min-height:0!important;
+  height:100%!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain!important;
+}
+@media(max-width:650px){
+  .topbar{z-index:2147483002!important}
+  .task-dashboard-backdrop{
+    inset:116px 0 0 0!important;
+    padding:0!important;
+    align-items:stretch!important;
+  }
+  .task-dashboard{
+    width:100%!important;
+    height:100%!important;
+    max-height:none!important;
+  }
+  .task-dashboard-layout{height:100%!important}
+  .task-dashboard-scroll{min-height:0!important;overflow-y:auto!important}
+}
