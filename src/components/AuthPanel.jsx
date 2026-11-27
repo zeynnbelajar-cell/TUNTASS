@@ -251,8 +251,11 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
     );
   }
 
-  const isLogin = mode === "login";
-  const isCopyLogin = copyMode === "login";
+  // Keep the visible content in sync with the panel that has reached its new position.
+  // `mode` is the target (for the slide); `copyMode` changes at the midpoint.
+  const isLogin = copyMode === "login";
+  const isTargetLogin = mode === "login";
+  const isCopyLogin = isLogin;
   const isPasswordResetRequest = passwordFlow === "request";
   const isPasswordResetUpdate = passwordFlow === "update";
 
@@ -289,10 +292,10 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
           inert={!open}
         >
           <div className="auth-dropdown-inner">
-            <div className={`auth-card ${isLogin ? "is-login" : "is-register"}`}>
+            <div className={`auth-card ${isTargetLogin ? "is-login" : "is-register"}`}>
               <button
                 type="button"
-                className={`auth-visual ${isLogin ? "is-login" : "is-register"}`}
+                className={`auth-visual ${isTargetLogin ? "is-login" : "is-register"}`}
                 aria-label={passwordFlow === "none"
                   ? (isCopyLogin ? "Geser panel merah untuk daftar" : "Geser panel merah untuk masuk")
                   : "Panel pemulihan kata sandi"}
@@ -331,7 +334,7 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
                 {passwordFlow === "none" && <span className="auth-mode-cta">{isCopyLogin ? "Sign Up" : "Sign In"}</span>}
               </button>
 
-              <div className={`auth-form-side ${isLogin ? "is-login" : "is-register"}`}>
+              <div className={`auth-form-side ${isTargetLogin ? "is-login" : "is-register"}`}>
                 <div className="auth-form-heading">
                   <span>
                     {isPasswordResetRequest ? "ACCOUNT RECOVERY" : isPasswordResetUpdate ? "SECURE YOUR ACCOUNT" : isCopyLogin ? "WELCOME BACK" : "GET STARTED"}

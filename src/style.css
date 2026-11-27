@@ -1273,3 +1273,24 @@ body{background:#030712}
 @media(prefers-reduced-motion:reduce){
   .zoom-grid-background canvas{opacity:.82}
 }
+
+/* Centered split authentication card; content changes at the exact midpoint of the panel exchange. */
+.auth-entry-action{justify-items:center}
+.auth-toggle,.auth-toggle.is-open{justify-self:center}
+.auth-dropdown-inner{display:flex;justify-content:center;width:100%;padding-inline:0}
+.auth-card{
+  width:min(920px,100%);
+  margin-inline:auto;
+}
+.auth-form-side{min-height:100%;overscroll-behavior:contain}
+.auth-visual,.auth-form-side{transition-duration:860ms}
+.auth-card.is-login .auth-visual,
+.auth-card.is-register .auth-form-side{cursor:pointer}
+@media(max-width:650px){
+  .auth-entry-action{justify-items:center}
+  .auth-toggle,.auth-toggle.is-open{justify-self:center}
+  .auth-dropdown-inner{padding-inline:0}
+  .auth-card{width:100%;min-height:440px}
+  .auth-visual,.auth-form-side{padding:18px 14px}
+  .auth-form-side{align-content:center}
+}
