@@ -1294,21 +1294,3 @@ body{background:#030712}
   .auth-visual,.auth-form-side{padding:18px 14px}
   .auth-form-side{align-content:center}
 }
-
-
-/* Auth transition timing: the red panel covers the center before content swaps. */
-.auth-card.is-cover .auth-visual {
-  transition-duration: 410ms !important;
-  transform: translate3d(50%, 0, 0) !important;
-}
-.auth-card.is-reveal .auth-visual,
-.auth-card.is-reveal .auth-form-side {
-  transition-duration: 410ms !important;
-}
-@media (prefers-reduced-motion: reduce) {
-  .auth-card.is-cover .auth-visual,
-  .auth-card.is-reveal .auth-visual,
-  .auth-card.is-reveal .auth-form-side {
-    transition-duration: 1ms !important;
-  }
-}

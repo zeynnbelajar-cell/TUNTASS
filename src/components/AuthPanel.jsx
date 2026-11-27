@@ -10,7 +10,6 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
   const [mode, setMode] = useState("register");
   const [copyMode, setCopyMode] = useState("register");
   const [isSliding, setIsSliding] = useState(false);
-  const [transitionPhase, setTransitionPhase] = useState("idle");
   const transitionTimer = useRef(null);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -47,31 +46,6 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
   }, [email, open, busy, isSliding, mode, passwordFlow]);
 
 
-  const transitionTarget = useRef("register");
-  const midpointReached = useRef(false);
-
-  function completeCurtainMidpoint() {
-    if (midpointReached.current) return;
-    midpointReached.current = true;
-    if (transitionTimer.current !== null) {
-      window.clearTimeout(transitionTimer.current);
-      transitionTimer.current = null;
-    }
-
-    // Swap the entire auth state only after the moving panel has physically
-    // reached the center (transitionend), not when the user clicks it.
-    setMode(transitionTarget.current);
-    setCopyMode(transitionTarget.current);
-    setTransitionPhase("reveal");
-
-    transitionTimer.current = window.setTimeout(() => {
-      setTransitionPhase("idle");
-      setIsSliding(false);
-      transitionTimer.current = null;
-      midpointReached.current = false;
-    }, AUTH_SLIDE_DURATION_MS / 2);
-  }
-
   function changeMode(nextMode) {
     if (busy || isSliding || mode === nextMode) return;
 
@@ -81,25 +55,21 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
     setConfirmPassword("");
 
     const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    setMode(nextMode);
 
     if (reduceMotion) {
-      setMode(nextMode);
       setCopyMode(nextMode);
-      setTransitionPhase("idle");
       return;
     }
 
-    transitionTarget.current = nextMode;
-    midpointReached.current = false;
     setIsSliding(true);
-    setTransitionPhase("cover");
-
-    // Failsafe only: normal synchronization is driven by the panel's actual
-    // transform transition ending at the center.
-    transitionTimer.current = window.setTimeout(
-      completeCurtainMidpoint,
-      AUTH_SLIDE_DURATION_MS / 2 + 180
-    );
+    transitionTimer.current = window.setTimeout(() => {
+      setCopyMode(nextMode);
+      transitionTimer.current = window.setTimeout(() => {
+        setIsSliding(false);
+        transitionTimer.current = null;
+      }, AUTH_SLIDE_DURATION_MS / 2);
+    }, AUTH_SLIDE_DURATION_MS / 2);
   }
 
   async function submit(event) {
@@ -322,7 +292,7 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
           inert={!open}
         >
           <div className="auth-dropdown-inner">
-            <div className={`auth-card ${isTargetLogin ? "is-login" : "is-register"} ${transitionPhase !== "idle" ? `is-${transitionPhase}` : ""}`}>
+            <div className={`auth-card ${isTargetLogin ? "is-login" : "is-register"}`}>
               <button
                 type="button"
                 className={`auth-visual ${isTargetLogin ? "is-login" : "is-register"}`}
@@ -331,15 +301,6 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
                   : "Panel pemulihan kata sandi"}
                 onClick={() => changeMode(isLogin ? "register" : "login")}
                 disabled={busy || isSliding || passwordFlow !== "none"}
-                onTransitionEnd={(event) => {
-                  if (
-                    event.target === event.currentTarget &&
-                    event.propertyName === "transform" &&
-                    transitionPhase === "cover"
-                  ) {
-                    completeCurtainMidpoint();
-                  }
-                }}
               >
                 <div className="auth-visual-copy">
                   <p>
