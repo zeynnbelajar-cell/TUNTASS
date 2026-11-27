@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Activity, ArrowLeft, Camera, CheckCircle2, Clock3, CloudSun, ExternalLink, FileSearch, MapPin, ShieldCheck, Sparkles, UserRound, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
@@ -97,7 +98,7 @@ export default function TaskDashboard({ report, assignment, onClose }) {
   const assignmentStatus = assignment?.status || "available";
   const statusText = ({ available: "Belum diambil", claimed: "Sedang dikerjakan", proof_submitted: "Menunggu verifikasi", verified: "Selesai diverifikasi", rejected: "Perlu perbaikan", cancelled: "Dilepas relawan" })[assignmentStatus] || assignmentStatus;
 
-  return (
+  return createPortal(
     <div className="task-dashboard-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <section className="task-dashboard" role="dialog" aria-modal="true" aria-labelledby="task-dashboard-title">
         <div className="task-dashboard-layout">
@@ -168,6 +169,7 @@ export default function TaskDashboard({ report, assignment, onClose }) {
         </div>
         <footer className="task-dashboard-footer"><span><Clock3 size={14}/> Diperbarui {new Date(clock).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</span><button type="button" onClick={onClose}><ArrowLeft size={15}/> Kembali ke daftar tugas</button></footer>
       </section>
-    </div>
+    </div>,
+    document.body
   );
 }
