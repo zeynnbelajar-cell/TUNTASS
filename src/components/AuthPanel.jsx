@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Eye, EyeOff, LogIn, LogOut, UserRound, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { isTuntasAdminUser, TUNTAS_ADMIN_EMAIL } from "../lib/adminAccess";
+
+const AUTH_SLIDE_DURATION_MS = 820;
 
 export default function AuthPanel({ user, passwordRecoveryActive = false, onPasswordRecoveryComplete }) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState("register");
   const [copyMode, setCopyMode] = useState("register");
-  const [transitionPhase, setTransitionPhase] = useState("idle");
-  const [pendingMode, setPendingMode] = useState(null);
-  const isSliding = transitionPhase !== "idle";
+  const [isSliding, setIsSliding] = useState(false);
+  const transitionTimer = useRef(null);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,6 +21,11 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  useEffect(() => () => {
+    if (transitionTimer.current !== null) {
+      window.clearTimeout(transitionTimer.current);
+    }
+  }, []);
   useEffect(() => {
     if (!passwordRecoveryActive) return;
     setOpen(true);
@@ -49,34 +55,21 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
     setConfirmPassword("");
 
     const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    setMode(nextMode);
+
     if (reduceMotion) {
-      setMode(nextMode);
       setCopyMode(nextMode);
-      setPendingMode(null);
-      setTransitionPhase("idle");
       return;
     }
 
-    // The curtain first travels to the exact center. Only its transitionend
-    // event is allowed to swap the form; the second half then reveals it.
-    setPendingMode(nextMode);
-    setTransitionPhase("to-midpoint");
-  }
-
-  function handleCurtainTransitionEnd(event) {
-    if (event.target !== event.currentTarget || event.propertyName !== "transform") return;
-
-    if (transitionPhase === "to-midpoint" && pendingMode) {
-      setMode(pendingMode);
-      setCopyMode(pendingMode);
-      setTransitionPhase("from-midpoint");
-      return;
-    }
-
-    if (transitionPhase === "from-midpoint") {
-      setPendingMode(null);
-      setTransitionPhase("idle");
-    }
+    setIsSliding(true);
+    transitionTimer.current = window.setTimeout(() => {
+      setCopyMode(nextMode);
+      transitionTimer.current = window.setTimeout(() => {
+        setIsSliding(false);
+        transitionTimer.current = null;
+      }, AUTH_SLIDE_DURATION_MS / 2);
+    }, AUTH_SLIDE_DURATION_MS / 2);
   }
 
   async function submit(event) {
@@ -299,7 +292,7 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
           inert={!open}
         >
           <div className="auth-dropdown-inner">
-            <div className={`auth-card ${isTargetLogin ? "is-login" : "is-register"} ${transitionPhase === "to-midpoint" ? "is-midpoint" : ""}`}>
+            <div className={`auth-card ${isTargetLogin ? "is-login" : "is-register"}`}>
               <button
                 type="button"
                 className={`auth-visual ${isTargetLogin ? "is-login" : "is-register"}`}
@@ -308,7 +301,6 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
                   : "Panel pemulihan kata sandi"}
                 onClick={() => changeMode(isLogin ? "register" : "login")}
                 disabled={busy || isSliding || passwordFlow !== "none"}
-                onTransitionEnd={handleCurtainTransitionEnd}
               >
                 <div className="auth-visual-copy">
                   <p>

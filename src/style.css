@@ -500,9 +500,6 @@
 }
 .auth-visual::before,.auth-visual::after{display:none}
 .auth-visual.is-login{transform:translate3d(100%,0,0);border-radius:0 19px 19px 0}
-.auth-visual.is-register{transform:translate3d(0,0,0);border-radius:19px 0 0 19px}
-.auth-card.is-midpoint .auth-visual,
-.auth-card.is-midpoint .auth-form-side{transform:translate3d(50%,0,0)!important;border-radius:0}
 .auth-visual-kicker,.auth-visual-orbit{display:none}
 .auth-visual-copy{
   position:relative;z-index:1;width:min(100%,280px);max-width:280px;
