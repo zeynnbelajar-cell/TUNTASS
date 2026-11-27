@@ -3,7 +3,7 @@ import { ArrowUpRight, Eye, EyeOff, LogIn, LogOut, UserRound, X } from "lucide-r
 import { supabase } from "../lib/supabase";
 import { isTuntasAdminUser, TUNTAS_ADMIN_EMAIL } from "../lib/adminAccess";
 
-const AUTH_SLIDE_DURATION_MS = 1120;
+const AUTH_CURTAIN_DURATION_MS = 1120;
 
 export default function AuthPanel({ user, passwordRecoveryActive = false, onPasswordRecoveryComplete }) {
   const [open, setOpen] = useState(true);
@@ -55,19 +55,23 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
     setConfirmPassword("");
 
     const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    setMode(nextMode);
-
     if (reduceMotion) {
+      setMode(nextMode);
       setCopyMode(nextMode);
       return;
     }
 
+    // Close the diagonal curtains first. Swap the two content halves only
+    // while the card is fully covered, then let the curtains reveal them.
     setIsSliding(true);
     transitionTimer.current = window.setTimeout(() => {
+      setMode(nextMode);
       setCopyMode(nextMode);
-      setIsSliding(false);
-      transitionTimer.current = null;
-    }, AUTH_SLIDE_DURATION_MS);
+      transitionTimer.current = window.setTimeout(() => {
+        setIsSliding(false);
+        transitionTimer.current = null;
+      }, AUTH_CURTAIN_DURATION_MS / 2);
+    }, AUTH_CURTAIN_DURATION_MS / 2);
   }
 
   async function submit(event) {
