@@ -147,7 +147,7 @@ export default function TaskDashboard({ report, assignment, onClose }) {
           </main>
           <aside className="task-dashboard-rail">
             <article className="task-rail-card task-rail-status"><span className="task-rail-eyebrow">TASK STATUS</span><strong>{statusText}</strong><div className="task-rail-track"><i style={{ width: assignmentStatus === "verified" ? "100%" : assignmentStatus === "proof_submitted" ? "82%" : assignmentStatus === "claimed" ? "42%" : "8%" }}/></div><small>Alur penanganan laporan</small></article>
-            <article className="task-rail-card task-rail-blue"><span className="task-rail-eyebrow">TASK AGE</span><strong>{reportAge}</strong><small>Sejak laporan warga dibuat</small><div className="task-rail-orbit"><Activity size={28}/></div></article>
+            <article className="task-rail-card task-rail-blue"><span className="task-rail-eyebrow">TASK AGE</span><strong>{reportAge}</strong><small>Sejak laporan warga dibuat</small><div className="task-rail-chart" aria-hidden="true"><i/><i/><i/><i/><i/><i/><i/></div></article>
             <article className="task-rail-card"><span className="task-rail-eyebrow">VOLUNTEER</span><strong>{volunteer?.full_name || (assignment ? "Profil belum tersedia" : "Belum diambil")}</strong><small>{volunteer?.area || "Wilayah relawan"}</small></article>
             <article className="task-rail-card"><span className="task-rail-eyebrow">CONNECTED SOURCES</span><div className="task-rail-source"><i className="is-ready"/> Data laporan TUNTAS</div><div className="task-rail-source"><i/> BMKG / Cuaca</div><div className="task-rail-source"><i/> Bukti internet</div><small>Sumber yang belum terhubung tidak ditampilkan sebagai data terverifikasi.</small></article>
           </aside>

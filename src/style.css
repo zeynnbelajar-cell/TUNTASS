@@ -1582,3 +1582,15 @@ body{background:#030712}
  .task-dashboard-metrics strong{font-size:16px!important}
  .task-source-grid{grid-template-columns:1fr!important}
 }
+
+/* V18 detail: compact blue analytics card with a clean bar-graph silhouette. */
+.task-rail-chart{height:48px;display:flex;align-items:flex-end;gap:7px;margin-top:13px;padding:0 2px}
+.task-rail-chart i{display:block;flex:1;min-width:5px;border-radius:5px 5px 2px 2px;background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(220,235,255,.48));box-shadow:0 0 10px rgba(255,255,255,.12)}
+.task-rail-chart i:nth-child(1){height:34%}
+.task-rail-chart i:nth-child(2){height:57%}
+.task-rail-chart i:nth-child(3){height:43%}
+.task-rail-chart i:nth-child(4){height:82%}
+.task-rail-chart i:nth-child(5){height:61%}
+.task-rail-chart i:nth-child(6){height:100%}
+.task-rail-chart i:nth-child(7){height:72%}
+@media(max-width:900px){.task-rail-chart{height:38px}}
