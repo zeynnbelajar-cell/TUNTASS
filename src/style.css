@@ -1636,3 +1636,87 @@ body{background:#030712}
   .task-dashboard-layout{height:100%!important}
   .task-dashboard-scroll{min-height:0!important;overflow-y:auto!important}
 }
+
+/* V18 responsive correction: preserve the three-column composition at laptop/tablet widths. */
+.topbar{
+ position:sticky!important;top:0!important;z-index:2147483002!important;
+ background:rgba(9,24,38,.92)!important;
+ backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important;
+}
+.task-dashboard-backdrop{
+ inset:82px 0 10px 0!important;
+ padding:clamp(8px,1.2vw,18px)!important;
+ align-items:stretch!important;
+}
+.task-dashboard{
+ width:min(1510px,calc(100vw - 24px))!important;
+ height:100%!important;max-height:none!important;
+}
+.task-dashboard-layout{
+ height:100%!important;min-height:0!important;
+ grid-template-columns:clamp(112px,14vw,178px) minmax(0,1fr) clamp(138px,18vw,224px)!important;
+}
+.task-dashboard-sidebar{
+ min-width:0!important;padding:18px 10px 14px!important;
+}
+.task-dashboard-sidebar>button{
+ min-width:0!important;white-space:normal!important;line-height:1.25!important;
+}
+.task-dashboard-scroll{
+ min-width:0!important;min-height:0!important;height:100%!important;
+ padding:18px clamp(12px,1.7vw,22px) 22px!important;
+ overflow-y:auto!important;overflow-x:hidden!important;
+}
+.task-dashboard-rail{
+ display:flex!important;min-width:0!important;min-height:0!important;
+ max-height:100%!important;overflow-y:auto!important;overflow-x:hidden!important;
+ align-content:start!important;padding:12px 0 12px 11px!important;gap:9px!important;
+ scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.22) transparent;
+}
+.task-rail-card{padding:12px 11px!important;border-radius:13px!important}
+.task-rail-blue{min-height:130px!important}
+.task-rail-card strong{font-size:clamp(12px,1.35vw,18px)!important;line-height:1.25!important}
+.task-rail-card small{font-size:8px!important}
+.task-rail-eyebrow{font-size:7px!important;margin-bottom:7px!important}
+.task-rail-chart{height:38px!important;margin-top:9px!important}
+.task-dashboard-metrics{gap:8px!important}
+.task-dashboard-metrics article{padding:11px 10px!important}
+.task-dashboard-metrics strong{font-size:clamp(13px,1.45vw,19px)!important}
+.task-dashboard-section{padding:12px 13px!important;margin-bottom:9px!important}
+.task-dashboard-section h3{font-size:11px!important;margin-bottom:9px!important}
+.task-complaint{padding:8px!important}
+.task-ai-summary{padding:10px!important;margin-top:7px!important}
+.task-source-grid{gap:7px!important}
+.task-source-grid article{padding:10px!important}
+.task-media-grid{gap:8px!important}
+.task-media-item img{max-height:150px!important;object-fit:cover!important}
+@media(max-width:950px) and (min-width:651px){
+ .task-dashboard-backdrop{inset:74px 0 8px 0!important;padding:7px!important}
+ .task-dashboard-layout{grid-template-columns:112px minmax(0,1fr) 138px!important}
+ .task-dashboard-sidebar{padding:13px 7px!important}
+ .task-dashboard-brand{gap:6px!important;padding:0 2px 12px!important}
+ .task-dashboard-brand-mark{width:29px!important;height:29px!important}
+ .task-dashboard-brand b{font-size:9px!important}
+ .task-dashboard-brand small{font-size:7px!important}
+ .task-dashboard-sidebar>button{font-size:8px!important;gap:6px!important;padding:6px!important}
+ .task-dashboard-scroll{padding:12px!important}
+ .task-dashboard-header h2{font-size:19px!important}
+ .task-dashboard-header{padding-bottom:11px!important;margin-bottom:11px!important}
+ .task-dashboard-metrics article{padding:8px!important}
+ .task-dashboard-metrics strong{font-size:12px!important}
+ .task-dashboard-metrics small{font-size:7px!important}
+ .task-dashboard-section{padding:9px!important}
+ .task-dashboard-section h3{font-size:9px!important}
+ .task-rail-card{padding:9px 8px!important}
+ .task-rail-blue{min-height:115px!important}
+ .task-rail-card strong{font-size:12px!important}
+}
+@media(max-width:650px){
+ .topbar{position:sticky!important;top:0!important}
+ .task-dashboard-backdrop{inset:112px 0 0 0!important;padding:0!important}
+ .task-dashboard{width:100%!important;height:100%!important;max-height:none!important}
+ .task-dashboard-layout{display:flex!important;flex-direction:column!important;height:100%!important}
+ .task-dashboard-sidebar{flex:0 0 auto!important;overflow-x:auto!important}
+ .task-dashboard-scroll{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important}
+ .task-dashboard-rail{display:none!important}
+}
