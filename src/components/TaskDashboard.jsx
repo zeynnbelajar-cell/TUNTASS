@@ -95,23 +95,33 @@ export default function TaskDashboard({ report, assignment, onClose }) {
           <div><span className="task-dashboard-kicker"><Activity size={14} /> TUNTAS · TASK INTELLIGENCE</span><h2 id="task-dashboard-title">Dashboard tugas</h2><p>{report.category || "Laporan warga"} · {report.location || "Lokasi belum tersedia"}</p></div>
           <button type="button" className="task-dashboard-close" onClick={onClose} aria-label="Tutup dashboard"><X size={20}/></button>
         </header>
-        <div className="task-dashboard-scroll">
+        <div className="task-dashboard-layout">
+          <aside className="task-dashboard-sidebar">
+            <div className="task-dashboard-brand"><span className="task-dashboard-brand-mark">T</span><div><b>TUNTAS</b><small>Volunteer workspace</small></div></div>
+            <span className="task-sidebar-label">TASK SPACE</span>
+            {[
+              ["Ringkasan", "task-overview"], ["Keluhan warga", "task-complaints"], ["Foto warga", "task-photos"],
+              ["Analisis AI", "task-analysis"], ["Relawan", "task-volunteer"], ["Tahapan", "task-stages"], ["Progres", "task-progress"]
+            ].map(([label, target]) => <button type="button" key={target} onClick={() => document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" })}><span className="task-sidebar-dot"/>{label}</button>)}
+            <div className="task-sidebar-bottom"><span className="task-sidebar-live"/> DATA TUGAS AKTIF</div>
+          </aside>
+          <main className="task-dashboard-scroll">
           {loading ? <div className="task-dashboard-loading">Mengumpulkan keluhan, foto, dan data tugas...</div> : null}
           {error && <p className="task-dashboard-error" role="alert">{error}</p>}
-          <div className="task-dashboard-metrics">
+          <div id="task-overview" className="task-dashboard-metrics">
             <article><span>Umur laporan</span><strong>{reportAge}</strong><small>Dibuat {dateText(report.created_at)}</small></article>
             <article><span>Durasi diambil relawan</span><strong>{claimedDuration}</strong><small>{claimedAt ? "Diambil " + dateText(claimedAt) : "Belum ada relawan mengambil"}</small></article>
             <article><span>Progres tugas</span><strong>{statusText}</strong><small>{assignment?.submitted_at ? "Bukti dikirim " + dateText(assignment.submitted_at) : "Belum ada bukti progres dikirim"}</small></article>
           </div>
-          <section className="task-dashboard-section">
+          <section id="task-complaints" className="task-dashboard-section">
             <h3><FileSearch size={17}/> Semua keluhan warga <span>{complaints.length || (loading ? "…" : 1)}</span></h3>
             {complaints.length ? complaints.map((item) => <article className="task-complaint" key={item.id}><div><b>{item.is_initial ? "Keluhan awal" : "Keluhan tambahan"}</b><small>{dateText(item.created_at)}</small></div><p>{item.description}</p>{item.location && <small><MapPin size={12}/> {item.location}</small>}</article>) : !loading ? <article className="task-complaint"><p>{report.description}</p><small>Data keluhan terperinci belum tersedia.</small></article> : null}
           </section>
-          <section className="task-dashboard-section">
+          <section id="task-photos" className="task-dashboard-section">
             <h3><Camera size={17}/> Foto & bukti warga <span>{attachments.length}</span></h3>
             {attachments.length ? <div className="task-media-grid">{attachments.map((item) => <a key={item.id} href={item.signedUrl || undefined} target="_blank" rel="noreferrer" className="task-media-item">{item.signedUrl && item.content_type.startsWith("image/") ? <img src={item.signedUrl} alt={item.file_name}/> : <div className="task-media-file">{item.file_name}</div>}<small>{item.file_name}</small></a>)}</div> : <p className="task-dashboard-muted">{loading ? "Memuat lampiran..." : "Belum ada foto/lampiran warga."}</p>}
           </section>
-          <section className="task-dashboard-section task-ai-analysis">
+          <section id="task-analysis" className="task-dashboard-section task-ai-analysis">
             <h3><Sparkles size={17}/> Analisis AI dari data laporan</h3>
             <div className="task-ai-summary"><span>Ringkasan</span><p>{report.summary || "Belum ada ringkasan AI yang tersimpan untuk laporan ini."}</p></div>
             <div className="task-ai-summary"><span>Rekomendasi</span><p>{report.recommendation || "Belum ada rekomendasi AI yang tersimpan."}</p></div>
@@ -121,19 +131,26 @@ export default function TaskDashboard({ report, assignment, onClose }) {
               <article><b>Laporan & bukti internet</b><span className="source-pending"><ExternalLink size={13}/> Belum terverifikasi</span><small>Belum ada sumber eksternal yang disimpan untuk laporan ini.</small></article>
             </div>
           </section>
-          <section className="task-dashboard-section">
+          <section id="task-volunteer" className="task-dashboard-section">
             <h3><UserRound size={17}/> Akun relawan</h3>
             {volunteer ? <div className="task-volunteer-profile"><b>{volunteer.full_name || "Nama relawan belum diisi"}</b><span>{volunteer.phone || "Kontak tidak dicantumkan"}</span><span>{volunteer.area || "Wilayah belum dicantumkan"}</span>{volunteer.skills && <small>Keahlian: {volunteer.skills}</small>}</div> : <p className="task-dashboard-muted">{assignment ? "Profil relawan belum tersedia." : "Belum ada relawan yang mengambil tugas ini."}</p>}
           </section>
-          <section className="task-dashboard-section">
+          <section id="task-stages" className="task-dashboard-section">
             <h3><Activity size={17}/> Tahap penanganan (saran AI · opsional)</h3>
             <ol className="task-ai-steps">{steps.map((step, index) => <li key={step}><span>{index + 1}</span>{step}</li>)}</ol>
             <p className="task-dashboard-muted">Tahapan ini hanya panduan umum. Relawan boleh menyesuaikan dan tidak wajib mengikuti langkah yang tidak sesuai kondisi atau kewenangannya.</p>
           </section>
-          <section className="task-dashboard-section">
+          <section id="task-progress" className="task-dashboard-section">
             <h3><ShieldCheck size={17}/> Laporan progres relawan</h3>
             {evidence.length ? <div className="task-media-grid">{evidence.map((item) => <article className="task-media-item" key={item.id}>{item.signedUrl ? <a href={item.signedUrl} target="_blank" rel="noreferrer"><img src={item.signedUrl} alt="Bukti progres relawan"/></a> : <div className="task-media-file">Bukti tidak dapat dibuka</div>}<small>{dateText(item.created_at)}</small>{item.note && <p>{item.note}</p>}</article>)}</div> : <p className="task-dashboard-muted">Relawan belum mengirim laporan progres. Pengisian laporan dan bukti bersifat opsional.</p>}
           </section>
+          </main>
+          <aside className="task-dashboard-rail">
+            <article className="task-rail-card task-rail-status"><span className="task-rail-eyebrow">TASK STATUS</span><strong>{statusText}</strong><div className="task-rail-track"><i style={{ width: assignmentStatus === "verified" ? "100%" : assignmentStatus === "proof_submitted" ? "82%" : assignmentStatus === "claimed" ? "42%" : "8%" }}/></div><small>Alur penanganan laporan</small></article>
+            <article className="task-rail-card task-rail-blue"><span className="task-rail-eyebrow">TASK AGE</span><strong>{reportAge}</strong><small>Sejak laporan warga dibuat</small><div className="task-rail-orbit"><Activity size={28}/></div></article>
+            <article className="task-rail-card"><span className="task-rail-eyebrow">VOLUNTEER</span><strong>{volunteer?.full_name || (assignment ? "Profil belum tersedia" : "Belum diambil")}</strong><small>{volunteer?.area || "Wilayah relawan"}</small></article>
+            <article className="task-rail-card"><span className="task-rail-eyebrow">CONNECTED SOURCES</span><div className="task-rail-source"><i className="is-ready"/> Data laporan TUNTAS</div><div className="task-rail-source"><i/> BMKG / Cuaca</div><div className="task-rail-source"><i/> Bukti internet</div><small>Sumber yang belum terhubung tidak ditampilkan sebagai data terverifikasi.</small></article>
+          </aside>
         </div>
         <footer className="task-dashboard-footer"><span><Clock3 size={14}/> Diperbarui {new Date(clock).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</span><button type="button" onClick={onClose}><ArrowLeft size={15}/> Kembali ke daftar tugas</button></footer>
       </section>
