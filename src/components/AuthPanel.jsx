@@ -47,6 +47,31 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
   }, [email, open, busy, isSliding, mode, passwordFlow]);
 
 
+  const transitionTarget = useRef("register");
+  const midpointReached = useRef(false);
+
+  function completeCurtainMidpoint() {
+    if (midpointReached.current) return;
+    midpointReached.current = true;
+    if (transitionTimer.current !== null) {
+      window.clearTimeout(transitionTimer.current);
+      transitionTimer.current = null;
+    }
+
+    // Swap the entire auth state only after the moving panel has physically
+    // reached the center (transitionend), not when the user clicks it.
+    setMode(transitionTarget.current);
+    setCopyMode(transitionTarget.current);
+    setTransitionPhase("reveal");
+
+    transitionTimer.current = window.setTimeout(() => {
+      setTransitionPhase("idle");
+      setIsSliding(false);
+      transitionTimer.current = null;
+      midpointReached.current = false;
+    }, AUTH_SLIDE_DURATION_MS / 2);
+  }
+
   function changeMode(nextMode) {
     if (busy || isSliding || mode === nextMode) return;
 
@@ -64,23 +89,17 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
       return;
     }
 
-    // Phase 1: the red panel travels to the exact center while the current
-    // Login/Register content and its controls remain unchanged.
+    transitionTarget.current = nextMode;
+    midpointReached.current = false;
     setIsSliding(true);
     setTransitionPhase("cover");
-    transitionTimer.current = window.setTimeout(() => {
-      // Midpoint: only now exchange the form, copy, field set and action.
-      setMode(nextMode);
-      setCopyMode(nextMode);
-      setTransitionPhase("reveal");
 
-      // Phase 2: continue the same panel movement from center to its endpoint.
-      transitionTimer.current = window.setTimeout(() => {
-        setTransitionPhase("idle");
-        setIsSliding(false);
-        transitionTimer.current = null;
-      }, AUTH_SLIDE_DURATION_MS / 2);
-    }, AUTH_SLIDE_DURATION_MS / 2);
+    // Failsafe only: normal synchronization is driven by the panel's actual
+    // transform transition ending at the center.
+    transitionTimer.current = window.setTimeout(
+      completeCurtainMidpoint,
+      AUTH_SLIDE_DURATION_MS / 2 + 180
+    );
   }
 
   async function submit(event) {
@@ -312,6 +331,15 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
                   : "Panel pemulihan kata sandi"}
                 onClick={() => changeMode(isLogin ? "register" : "login")}
                 disabled={busy || isSliding || passwordFlow !== "none"}
+                onTransitionEnd={(event) => {
+                  if (
+                    event.target === event.currentTarget &&
+                    event.propertyName === "transform" &&
+                    transitionPhase === "cover"
+                  ) {
+                    completeCurtainMidpoint();
+                  }
+                }}
               >
                 <div className="auth-visual-copy">
                   <p>
