@@ -1822,11 +1822,3 @@ body{background:#030712}
 @media(prefers-reduced-motion:reduce){
   .auth-visual,.auth-form-side,.auth-mode-cta,.auth-submit{transition:none!important}
 }
-
-/* Keep the diagonal edge itself animated with the sliding panel. */
-.auth-visual{
-  transition:
-    transform 780ms cubic-bezier(.76,0,.24,1),
-    clip-path 780ms cubic-bezier(.76,0,.24,1),
-    border-radius 620ms cubic-bezier(.2,.72,.2,1)!important;
-}
