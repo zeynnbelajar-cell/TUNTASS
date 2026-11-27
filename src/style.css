@@ -1462,3 +1462,123 @@ body{background:#030712}
  .task-dashboard-header{padding:13px 14px!important}
  .task-dashboard-footer{padding:9px 12px!important}
 }
+
+/* Fine match to the supplied Glassy Dashboard V18 reference */
+.task-dashboard-backdrop{
+ position:fixed!important;inset:0!important;z-index:2147483000!important;
+ display:grid!important;place-items:center!important;padding:clamp(8px,2vw,28px)!important;
+ background:rgba(18,14,11,.13)!important;backdrop-filter:blur(2px)!important;-webkit-backdrop-filter:blur(2px)!important;
+}
+.task-dashboard{
+ width:min(1480px,98vw)!important;height:min(880px,94vh)!important;max-height:94vh!important;
+ display:block!important;overflow:visible!important;border:0!important;border-radius:0!important;
+ padding:0!important;background:transparent!important;box-shadow:none!important;backdrop-filter:none!important;
+ color:#f8f3ed!important;
+}
+.task-dashboard-layout{
+ position:relative!important;display:grid!important;
+ grid-template-columns:178px minmax(0,1fr) 224px!important;gap:0!important;
+ height:100%!important;min-height:0!important;overflow:visible!important;
+}
+.task-dashboard-sidebar{
+ position:relative!important;z-index:1!important;display:flex!important;flex-direction:column!important;gap:7px!important;
+ min-height:0!important;padding:22px 13px 18px!important;
+ border:1px solid rgba(255,255,255,.27)!important;border-right:1px solid rgba(255,255,255,.12)!important;
+ border-radius:23px 0 0 23px!important;
+ background:linear-gradient(155deg,rgba(102,82,67,.82),rgba(58,48,42,.76))!important;
+ box-shadow:0 22px 65px rgba(27,17,11,.22),inset 0 1px rgba(255,255,255,.3)!important;
+ backdrop-filter:blur(30px) saturate(135%)!important;-webkit-backdrop-filter:blur(30px) saturate(135%)!important;
+}
+.task-dashboard-brand{padding:0 5px 22px!important;border-bottom:1px solid rgba(255,255,255,.16)!important;margin-bottom:10px!important}
+.task-dashboard-brand-mark{border-radius:50%!important;background:rgba(255,255,255,.18)!important;border-color:rgba(255,255,255,.3)!important}
+.task-dashboard-brand b{font-size:11px!important;letter-spacing:.08em!important}
+.task-dashboard-brand small{font-size:8px!important}
+.task-sidebar-label{font-size:8px!important;letter-spacing:.16em!important}
+.task-dashboard-sidebar>button{min-height:34px!important;padding:7px 9px!important;border-radius:8px!important;font-size:10px!important;color:rgba(255,255,255,.8)!important}
+.task-dashboard-sidebar>button:hover{background:rgba(255,255,255,.16)!important}
+.task-sidebar-dot{width:5px!important;height:5px!important;background:#d5c5b4!important;box-shadow:none!important}
+.task-sidebar-bottom{font-size:7px!important}
+.task-dashboard-scroll{
+ position:relative!important;z-index:1!important;min-width:0!important;min-height:0!important;height:100%!important;
+ overflow:auto!important;padding:23px 22px 24px!important;border:1px solid rgba(255,255,255,.27)!important;
+ border-left:0!important;border-radius:0 23px 23px 0!important;
+ background:linear-gradient(135deg,rgba(104,82,66,.78),rgba(65,55,49,.72) 56%,rgba(51,48,45,.74))!important;
+ box-shadow:0 22px 65px rgba(27,17,11,.22),inset 0 1px rgba(255,255,255,.3)!important;
+ backdrop-filter:blur(30px) saturate(135%)!important;-webkit-backdrop-filter:blur(30px) saturate(135%)!important;
+ scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.25) transparent;
+}
+.task-dashboard-header{
+ display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:16px!important;
+ padding:0 0 18px!important;margin:0 0 18px!important;border:0!important;border-bottom:1px solid rgba(255,255,255,.17)!important;
+ background:transparent!important;
+}
+.task-dashboard-kicker{display:flex!important;align-items:center!important;gap:7px!important;color:#e3c8a7!important;font-size:9px!important;letter-spacing:.13em!important;font-weight:800!important}
+.task-dashboard-header h2{margin:8px 0 4px!important;color:#fff!important;font-size:24px!important;font-weight:650!important;letter-spacing:-.035em!important}
+.task-dashboard-header p{margin:0!important;color:rgba(255,255,255,.62)!important;font-size:10px!important}
+.task-dashboard-close{display:grid!important;place-items:center!important;width:34px!important;height:34px!important;border:1px solid rgba(255,255,255,.2)!important;border-radius:10px!important;color:#fff!important;background:rgba(255,255,255,.1)!important}
+.task-dashboard-metrics{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;margin:0 0 13px!important}
+.task-dashboard-metrics article{
+ min-width:0!important;padding:14px 13px!important;border:1px solid rgba(255,255,255,.17)!important;border-radius:13px!important;
+ background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(255,255,255,.045))!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.13),0 8px 20px rgba(20,12,8,.08)!important;
+}
+.task-dashboard-metrics article>span{font-size:9px!important;color:rgba(255,255,255,.65)!important}
+.task-dashboard-metrics strong{display:block!important;margin:8px 0 5px!important;color:#fff!important;font-size:19px!important;line-height:1.2!important}
+.task-dashboard-metrics small{font-size:8px!important;color:rgba(255,255,255,.54)!important}
+.task-dashboard-section{
+ margin:0 0 12px!important;padding:15px!important;border:1px solid rgba(255,255,255,.17)!important;border-radius:14px!important;
+ background:linear-gradient(145deg,rgba(255,255,255,.13),rgba(255,255,255,.035))!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.12),0 8px 20px rgba(20,12,8,.07)!important;
+}
+.task-dashboard-section h3{display:flex!important;align-items:center!important;gap:8px!important;margin:0 0 12px!important;color:#fff!important;font-size:12px!important;font-weight:650!important}
+.task-dashboard-section h3>svg{color:#e3c8a7!important}
+.task-dashboard-section h3>span{margin-left:auto;padding:3px 7px;border-radius:20px;background:rgba(255,255,255,.13);font-size:9px}
+.task-complaint{padding:10px!important;border-color:rgba(255,255,255,.13)!important;background:rgba(20,16,13,.12)!important;border-radius:9px!important}
+.task-complaint p,.task-ai-summary p,.task-ai-steps li{color:rgba(255,255,255,.88)!important;font-size:10px!important;line-height:1.6!important}
+.task-complaint small,.task-dashboard-muted{color:rgba(255,255,255,.56)!important;font-size:9px!important}
+.task-ai-summary,.task-source-grid article,.task-volunteer-profile{border-color:rgba(255,255,255,.13)!important;background:rgba(20,16,13,.13)!important;border-radius:10px!important}
+.task-ai-summary>span,.task-source-grid b,.task-volunteer-profile b{color:#fff!important;font-size:10px!important}
+.task-source-grid{gap:8px!important}
+.task-source-grid small,.task-volunteer-profile span,.task-volunteer-profile small{color:rgba(255,255,255,.61)!important;font-size:9px!important}
+.task-media-item{border:1px solid rgba(255,255,255,.17)!important;background:rgba(255,255,255,.07)!important;border-radius:10px!important;overflow:hidden}
+.task-media-item img{border-radius:8px!important}
+.task-ai-steps li span{background:rgba(255,255,255,.18)!important;color:#fff!important}
+.task-dashboard-rail{
+ position:relative!important;z-index:2!important;display:flex!important;flex-direction:column!important;gap:10px!important;
+ min-width:0!important;min-height:0!important;padding:0 0 0 13px!important;border:0!important;background:transparent!important;
+}
+.task-rail-card{
+ position:relative!important;overflow:hidden!important;padding:16px 14px!important;border:1px solid rgba(255,255,255,.28)!important;
+ border-radius:15px!important;background:linear-gradient(145deg,rgba(100,83,69,.83),rgba(48,43,40,.78))!important;
+ box-shadow:0 15px 35px rgba(25,15,10,.22),inset 0 1px rgba(255,255,255,.28)!important;
+ backdrop-filter:blur(28px) saturate(145%)!important;-webkit-backdrop-filter:blur(28px) saturate(145%)!important;
+}
+.task-rail-blue{min-height:175px!important;background:linear-gradient(145deg,rgba(73,120,193,.94),rgba(53,83,146,.88))!important}
+.task-rail-eyebrow{font-size:8px!important;letter-spacing:.12em!important;color:rgba(255,255,255,.7)!important}
+.task-rail-card strong{font-size:20px!important;color:#fff!important}
+.task-rail-card small{font-size:8px!important;color:rgba(255,255,255,.64)!important}
+.task-rail-track{height:5px!important;background:rgba(255,255,255,.22)!important}
+.task-rail-track i{background:#d9e8ff!important}
+.task-rail-orbit{color:rgba(255,255,255,.75)!important}
+.task-rail-source{font-size:9px!important}
+.task-dashboard-footer{display:none!important}
+#task-overview,#task-complaints,#task-photos,#task-analysis,#task-volunteer,#task-stages,#task-progress{scroll-margin-top:12px}
+@media(max-width:900px){
+ .task-dashboard{width:98vw!important;height:94vh!important}
+ .task-dashboard-layout{grid-template-columns:145px minmax(0,1fr)!important}
+ .task-dashboard-rail{display:none!important}
+}
+@media(max-width:620px){
+ .task-dashboard-backdrop{padding:0!important;background:rgba(15,12,10,.34)!important}
+ .task-dashboard{width:100vw!important;height:100dvh!important;max-height:100dvh!important}
+ .task-dashboard-layout{display:flex!important;flex-direction:column!important;gap:0!important;height:100%!important}
+ .task-dashboard-sidebar{flex-direction:row!important;align-items:center!important;gap:4px!important;overflow-x:auto!important;flex:0 0 auto!important;padding:8px!important;border-radius:0!important;border:1px solid rgba(255,255,255,.2)!important}
+ .task-dashboard-brand{flex:0 0 auto!important;padding:0 8px 0 0!important;margin:0!important;border:0!important}
+ .task-dashboard-brand small,.task-sidebar-label,.task-sidebar-bottom{display:none!important}
+ .task-dashboard-sidebar>button{flex:0 0 auto!important;min-height:32px!important;padding:6px 8px!important;font-size:9px!important}
+ .task-dashboard-scroll{flex:1!important;border-radius:0!important;border:0!important;padding:13px!important}
+ .task-dashboard-header h2{font-size:20px!important}
+ .task-dashboard-metrics{grid-template-columns:1fr!important}
+ .task-dashboard-metrics strong{font-size:16px!important}
+ .task-source-grid{grid-template-columns:1fr!important}
+}

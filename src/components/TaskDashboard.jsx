@@ -91,10 +91,6 @@ export default function TaskDashboard({ report, assignment, onClose }) {
   return (
     <div className="task-dashboard-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <section className="task-dashboard" role="dialog" aria-modal="true" aria-labelledby="task-dashboard-title">
-        <header className="task-dashboard-header">
-          <div><span className="task-dashboard-kicker"><Activity size={14} /> TUNTAS · TASK INTELLIGENCE</span><h2 id="task-dashboard-title">Dashboard tugas</h2><p>{report.category || "Laporan warga"} · {report.location || "Lokasi belum tersedia"}</p></div>
-          <button type="button" className="task-dashboard-close" onClick={onClose} aria-label="Tutup dashboard"><X size={20}/></button>
-        </header>
         <div className="task-dashboard-layout">
           <aside className="task-dashboard-sidebar">
             <div className="task-dashboard-brand"><span className="task-dashboard-brand-mark">T</span><div><b>TUNTAS</b><small>Volunteer workspace</small></div></div>
@@ -106,6 +102,10 @@ export default function TaskDashboard({ report, assignment, onClose }) {
             <div className="task-sidebar-bottom"><span className="task-sidebar-live"/> DATA TUGAS AKTIF</div>
           </aside>
           <main className="task-dashboard-scroll">
+          <header className="task-dashboard-header">
+            <div><span className="task-dashboard-kicker"><Activity size={14}/> TUNTAS · VOLUNTEER WORKSPACE</span><h2 id="task-dashboard-title">Detail tugas</h2><p>{report.category || "Laporan warga"} <span>·</span> {report.location || "Lokasi belum tersedia"}</p></div>
+            <button type="button" className="task-dashboard-close" onClick={onClose} aria-label="Tutup dashboard"><X size={20}/></button>
+          </header>
           {loading ? <div className="task-dashboard-loading">Mengumpulkan keluhan, foto, dan data tugas...</div> : null}
           {error && <p className="task-dashboard-error" role="alert">{error}</p>}
           <div id="task-overview" className="task-dashboard-metrics">
