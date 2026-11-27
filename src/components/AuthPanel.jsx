@@ -11,6 +11,7 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
   const [copyMode, setCopyMode] = useState("register");
   const [isSliding, setIsSliding] = useState(false);
   const transitionTimer = useRef(null);
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -80,6 +81,10 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
       setError("Supabase belum dikonfigurasi. Periksa konfigurasi aplikasi.");
       return;
     }
+    if (mode === "register" && !username.trim()) {
+      setError("Masukkan nama pengguna terlebih dahulu.");
+      return;
+    }
     if (!email.trim() || password.length < 8) {
       setError("Masukkan email yang valid dan kata sandi minimal 8 karakter.");
       return;
@@ -93,6 +98,10 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
           password,
           options: {
             emailRedirectTo: new URL(import.meta.env.BASE_URL, window.location.origin).href,
+            data: {
+              username: username.trim(),
+              full_name: username.trim(),
+            },
           },
         });
         if (authError) throw authError;
@@ -231,8 +240,8 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
       <div className="auth-account" aria-label="Akun aktif" data-mask-reveal>
         <span className="auth-avatar"><UserRound size={16} /></span>
         <span className="auth-account-copy">
-          <strong>{user.email}</strong>
-          <small>{isTuntasAdminUser(user) ? "Admin TUNTAS" : "Akun relawan"}</small>
+          <strong>{user.user_metadata?.username || user.user_metadata?.full_name || user.email}</strong>
+          <small>{user.email} · {isTuntasAdminUser(user) ? "Admin TUNTAS" : "Akun relawan"}</small>
         </span>
 
         <button type="button" className="auth-signout" onClick={signOut}>
@@ -345,6 +354,23 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
                   className="auth-form"
                   onSubmit={isPasswordResetRequest ? requestPasswordReset : isPasswordResetUpdate ? updateRecoveredPassword : submit}
                 >
+                  {!isLogin && !isPasswordResetRequest && !isPasswordResetUpdate && (
+                    <>
+                      <label htmlFor="auth-username">Nama pengguna</label>
+                      <input
+                        id="auth-username"
+                        type="text"
+                        autoComplete="nickname"
+                        value={username}
+                        onChange={(event) => setUsername(event.target.value)}
+                        placeholder="Nama yang ingin ditampilkan"
+                        maxLength={40}
+                        disabled={busy || isSliding}
+                        required
+                      />
+                    </>
+                  )}
+
                   {!isPasswordResetUpdate && (
                     <>
                       <label htmlFor="auth-email">Alamat email</label>
