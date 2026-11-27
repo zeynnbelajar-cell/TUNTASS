@@ -6,7 +6,7 @@ import { isTuntasAdminUser, TUNTAS_ADMIN_EMAIL } from "../lib/adminAccess";
 const AUTH_SLIDE_DURATION_MS = 820;
 
 export default function AuthPanel({ user, passwordRecoveryActive = false, onPasswordRecoveryComplete }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [mode, setMode] = useState("register");
   const [copyMode, setCopyMode] = useState("register");
   const [isSliding, setIsSliding] = useState(false);
@@ -299,8 +299,8 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
                       : isPasswordResetUpdate
                         ? "SECURE YOUR ACCOUNT"
                         : isCopyLogin
-                          ? "TUNTAS • COMMUNITY ACTION"
-                          : "TUNTAS • CIVIC ACTION"}
+                          ? "READY TO MAKE A DIFFERENCE?"
+                          : "YOUR COMMUNITY IS WAITING"}
                   </p>
                   <h3>
                     {isPasswordResetRequest
@@ -308,8 +308,8 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
                       : isPasswordResetUpdate
                         ? "Welcome Back!"
                         : isCopyLogin
-                          ? "Welcome Back!"
-                          : "Welcome!"}
+                          ? "Hello, Friend!"
+                          : "Welcome Back!"}
                   </h3>
                   <span>
                     {isPasswordResetRequest
@@ -317,8 +317,8 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
                       : isPasswordResetUpdate
                         ? "Atur kata sandi baru agar akunmu kembali aman."
                         : isCopyLogin
-                          ? "Kembali dan lanjutkan kontribusimu untuk lingkungan sekitar bersama TUNTAS."
-                          : "Kami senang kamu bergabung. Mulai perjalanan kecil yang membawa perubahan besar bersama TUNTAS."}
+                          ? "Bergabunglah dan mulai perjalanan membuat perubahan bersama."
+                          : "Kami senang melihatmu kembali. Masuk untuk melanjutkan aksi baikmu bersama TUNTAS."}
                   </span>
                 </div>
                 {passwordFlow === "none" && <span className="auth-mode-cta">{isCopyLogin ? "Sign Up" : "Sign In"}</span>}
@@ -330,7 +330,7 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
                     {isPasswordResetRequest ? "ACCOUNT RECOVERY" : isPasswordResetUpdate ? "SECURE YOUR ACCOUNT" : isCopyLogin ? "WELCOME BACK" : "GET STARTED"}
                   </span>
                   <h3>
-                    {isPasswordResetRequest ? "Lupa Kata Sandi?" : isPasswordResetUpdate ? "Buat Kata Sandi Baru" : isCopyLogin ? "Sign In" : "Register"}
+                    {isPasswordResetRequest ? "Lupa Kata Sandi?" : isPasswordResetUpdate ? "Buat Kata Sandi Baru" : isCopyLogin ? "Welcome Back" : "Create Account"}
                   </h3>
                   <p>
                     {isPasswordResetRequest
@@ -338,7 +338,7 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
                       : isPasswordResetUpdate
                         ? "Pilih kata sandi baru minimal 8 karakter untuk mengamankan akun TUNTAS."
                         : isCopyLogin
-                          ? "Masuk kembali untuk melanjutkan aksi baikmu."
+                          ? "Masuk untuk melanjutkan kontribusimu."
                           : "Buat akun relawan dan mulai ambil bagian."}
                   </p>
                 </div>
