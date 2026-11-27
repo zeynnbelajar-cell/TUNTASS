@@ -7,8 +7,8 @@ const AUTH_SLIDE_DURATION_MS = 820;
 
 export default function AuthPanel({ user, passwordRecoveryActive = false, onPasswordRecoveryComplete }) {
   const [open, setOpen] = useState(true);
-  const [mode, setMode] = useState("login");
-  const [copyMode, setCopyMode] = useState("login");
+  const [mode, setMode] = useState("register");
+  const [copyMode, setCopyMode] = useState("register");
   const [isSliding, setIsSliding] = useState(false);
   const transitionTimer = useRef(null);
   const [fullName, setFullName] = useState("");
