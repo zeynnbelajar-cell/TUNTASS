@@ -3,7 +3,7 @@ import { ArrowUpRight, Eye, EyeOff, LogIn, LogOut, UserRound, X } from "lucide-r
 import { supabase } from "../lib/supabase";
 import { isTuntasAdminUser, TUNTAS_ADMIN_EMAIL } from "../lib/adminAccess";
 
-const AUTH_SLIDE_DURATION_MS = 820;
+const AUTH_SLIDE_DURATION_MS = 1120;
 
 export default function AuthPanel({ user, passwordRecoveryActive = false, onPasswordRecoveryComplete }) {
   const [open, setOpen] = useState(true);
@@ -282,12 +282,12 @@ export default function AuthPanel({ user, passwordRecoveryActive = false, onPass
           inert={!open}
         >
           <div className="auth-dropdown-inner">
-            <div className={`auth-card ${isLogin ? "is-login" : "is-register"}`}>
+            <div className={`auth-card ${isLogin ? "is-login" : "is-register"} ${isSliding ? "is-transitioning" : ""}`}>
               <button
                 type="button"
                 className={`auth-visual ${isLogin ? "is-login" : "is-register"}`}
                 aria-label={passwordFlow === "none"
-                  ? (isCopyLogin ? "Geser panel merah untuk daftar" : "Geser panel merah untuk masuk")
+                  ? (isCopyLogin ? "Buka tirai untuk daftar" : "Buka tirai untuk masuk")
                   : "Panel pemulihan kata sandi"}
                 onClick={() => changeMode(isLogin ? "register" : "login")}
                 disabled={busy || isSliding || passwordFlow !== "none"}
