@@ -1558,3 +1558,142 @@ body.task-dashboard-open > .task-dashboard-backdrop{
   backdrop-filter:none!important;
   -webkit-backdrop-filter:none!important;
 }
+
+/* Smooth, lightweight motion for Cek Tugas — transform/opacity only */
+.task-dashboard-backdrop{
+  animation:taskBackdropIn 160ms ease-out both;
+  isolation:isolate;
+}
+.task-dashboard{
+  transform-origin:center;
+  animation:taskPanelIn 190ms cubic-bezier(.2,.75,.25,1) both;
+
+}
+.task-dashboard-close,
+.task-dashboard-sidebar>button,
+.task-dashboard-footer button,
+.task-check-button{
+  transition:transform 150ms ease,background-color 150ms ease,border-color 150ms ease,opacity 150ms ease;
+}
+.task-dashboard-sidebar>button:active,
+.task-dashboard-close:active,
+.task-dashboard-footer button:active,
+.task-check-button:active{transform:scale(.975)}
+.task-dashboard-scroll{scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
+
+.task-dashboard-metrics article,
+.task-dashboard-section,
+.task-rail-card{
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+}
+.task-dashboard-rail .task-rail-chart{contain:layout paint}
+@keyframes taskBackdropIn{from{opacity:0}to{opacity:1}}
+@keyframes taskPanelIn{from{opacity:0;transform:translate3d(0,8px,0) scale(.992)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@media(prefers-reduced-motion:reduce){
+ .task-dashboard-backdrop,.task-dashboard{animation:none!important}
+ .task-dashboard-close,.task-dashboard-sidebar>button,.task-dashboard-footer button,.task-check-button{transition:none!important}
+ .task-dashboard-scroll{scroll-behavior:auto!important}
+}
+
+@media(max-width:700px){
+  .task-dashboard-metrics article,
+  .task-dashboard-section,
+  .task-rail-card{
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+  }
+}
+
+
+/* Dashboard Cek Tugas — visual mengikuti Dashboard Keluhan Warga.html.
+   Backdrop sengaja transparan agar halaman Relawan tetap terlihat di belakang. */
+body.task-dashboard-open>.task-dashboard-backdrop{
+  background:transparent!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+body.task-dashboard-open .task-dashboard{
+  color:#f6f0e7!important;
+  background:linear-gradient(180deg,rgba(255,248,238,.075),rgba(255,248,238,0) 25%),rgba(34,26,20,.84)!important;
+  border:1px solid rgba(255,248,238,.2)!important;
+  border-radius:26px!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 24px 60px -24px rgba(0,0,0,.42)!important;
+  -webkit-backdrop-filter:blur(9px) saturate(1.12)!important;
+  backdrop-filter:blur(9px) saturate(1.12)!important;
+}
+body.task-dashboard-open .task-dashboard-sidebar{
+  background:rgba(22,17,13,.22)!important;
+  border-color:rgba(255,248,238,.13)!important;
+}
+body.task-dashboard-open .task-dashboard-brand-mark{
+  color:#f6f0e7!important;
+  background:linear-gradient(145deg,rgba(255,248,238,.2),rgba(255,248,238,.045))!important;
+  border-color:rgba(255,248,238,.26)!important;
+}
+body.task-dashboard-open .task-dashboard-header{
+  background:linear-gradient(110deg,rgba(255,248,238,.09),rgba(255,248,238,.015))!important;
+  border-color:rgba(255,248,238,.13)!important;
+}
+body.task-dashboard-open .task-dashboard-kicker{color:#d7c3a5!important}
+body.task-dashboard-open .task-dashboard-header h2{font-family:Georgia,serif!important;font-weight:400!important;letter-spacing:-.02em!important}
+body.task-dashboard-open .task-dashboard-section,
+body.task-dashboard-open .task-dashboard-metrics article{
+  color:#f6f0e7!important;
+  background:rgba(255,248,238,.055)!important;
+  border-color:rgba(255,248,238,.13)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.055)!important;
+}
+body.task-dashboard-open .task-dashboard-section h3{color:#f6f0e7!important}
+body.task-dashboard-open .task-dashboard-section p,
+body.task-dashboard-open .task-dashboard-section small,
+body.task-dashboard-open .task-dashboard-metrics small{color:rgba(246,240,231,.68)!important}
+body.task-dashboard-open .task-ai-summary,
+body.task-dashboard-open .task-source-grid article,
+body.task-dashboard-open .task-volunteer-profile,
+body.task-dashboard-open .task-complaint,
+body.task-dashboard-open .task-media-item{
+  background:rgba(255,248,238,.055)!important;
+  border-color:rgba(255,248,238,.14)!important;
+}
+body.task-dashboard-open .task-source-grid article b{color:#f6f0e7!important}
+body.task-dashboard-open .task-source-grid article span{color:#9fe0b1!important}
+body.task-dashboard-open .task-source-grid article .source-pending{color:#f0c77b!important}
+body.task-dashboard-open .task-dashboard-rail{
+  background:rgba(22,17,13,.18)!important;
+  border-color:rgba(255,248,238,.13)!important;
+}
+body.task-dashboard-open .task-rail-card{
+  border-color:rgba(255,248,238,.16)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 12px 25px rgba(0,0,0,.12)!important;
+  -webkit-backdrop-filter:blur(6px)!important;
+  backdrop-filter:blur(6px)!important;
+}
+body.task-dashboard-open .task-rail-blue{
+  background:radial-gradient(120% 80% at 20% 0%,rgba(255,255,255,.2),transparent 60%),linear-gradient(165deg,#5f86c4,#3a5fa6 55%,#2e4a88)!important;
+}
+body.task-dashboard-open .task-rail-volunteer,
+body.task-dashboard-open .task-rail-sources{
+  background:linear-gradient(180deg,rgba(255,248,238,.08),rgba(255,248,238,.025)),rgba(70,52,36,.62)!important;
+}
+body.task-dashboard-open .task-dashboard-close,
+body.task-dashboard-open .task-dashboard-sidebar>button,
+body.task-dashboard-open .task-dashboard-footer button{
+  transition:transform 150ms ease,background-color 150ms ease,border-color 150ms ease!important;
+}
+body.task-dashboard-open .task-dashboard-sidebar>button:hover{background:rgba(255,248,238,.1)!important}
+@media(max-width:700px){
+  body.task-dashboard-open>.task-dashboard-backdrop{background:transparent!important}
+  body.task-dashboard-open .task-dashboard{
+    border-radius:0!important;
+    background:rgba(34,26,20,.94)!important;
+    -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+  }
+  body.task-dashboard-open .task-dashboard-sidebar{background:rgba(22,17,13,.35)!important}
+  body.task-dashboard-open .task-dashboard-rail{display:none!important}
+  body.task-dashboard-open .task-dashboard-section,
+  body.task-dashboard-open .task-dashboard-metrics article,
+  body.task-dashboard-open .task-rail-card{
+    -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+  }
+}
