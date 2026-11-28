@@ -95,7 +95,7 @@ body{background:var(--bg);color:#fff;font:500 12px/1.3 Inter,system-ui,sans-seri
 <i style="left:1364px;top:90px;width:9px;height:650px;background:#6e5d47"></i><i style="left:1290px;top:728px;width:150px;height:26px;border-radius:50%;background:#7a6a58"></i>
 <i style="left:-1080px;top:752px;width:3600px;height:1000px;background:linear-gradient(180deg,#bcae9b,#a89a86)"></i>
 </div></div>
-<div class="g" id="sd"><div class="pf"><span class="av"></span><div><b>Sarah’s<br>Workspace</b><small>Growth plan</small></div></div><div class="nl" id="nv"><div id="ind"></div></div><div class="nl" id="bt"></div></div>
+<div class="g" id="sd"><div class="pf"><span class="av"></span><div><b>Nama Relawan<br>Workspace</b><small>Growth plan</small></div></div><div class="nl" id="nv"><div id="ind"></div></div><div class="nl" id="bt"></div></div>
 <div class="g" id="mn"><div id="hd"></div><div id="pg"></div></div>
 <div id="rt">
 <div class="w" id="w1"><div class="h">Contacts<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M8 8h.01M16 8h.01M8 16h.01M16 16h.01" stroke-width="3"/></svg></div><div class="n" id="v1">2,938</div><div class="sub">192 New in July <span class="ch">↗ 12%</span></div><div class="bs" id="b1"></div></div>
@@ -138,7 +138,7 @@ return`<div class="pw" style="grid-template-columns:1fr 193px"><div class="c tb"
 const sk=()=>`<div class="pw" style="grid-template-columns:1fr 1fr 1fr;grid-template-rows:140px 1fr">${[0,1,2,3,4].map(i=>`<div class="c sk" style="${i==3?'grid-column:span 2':''}"></div>`).join('')}</div>`;
 const nav=[['Overview','grid'],['Inbox','msg'],['Leads','tgt'],['Deals','kb'],['Contacts','us'],['Companies','bl'],['Tasks','ls'],['Calendar','cal'],['Reports','br'],['Integrations','pl']];
 const map={0:0,2:1,8:2,7:3};
-const hr=new Date().getHours(),gr=`Good ${hr<12?'Morning':hr<18?'Afternoon':'Evening'}, Sarah`;
+const hr=new Date().getHours(),gr=`Good ${hr<12?'Morning':hr<18?'Afternoon':'Evening'}, Nama Relawan`;
 const heads=[[gr,'Your latest texting updates here',`<span class="rb">${ic('se',13)}</span><span class="ls">${ic('sy',11)}<div><small>Last sync</small><br>Just now</div></span><span class="av sm"></span>`],['Leads','Score, qualify and convert new prospects',`<span class="sb">${ic('se',12)}Search leads</span><span class="bt">${ic('pu',12)} Add lead</span>`],['Reports','Sales performance, updated live',`<span class="bt gl">${ic('dl',12)} Export</span>`],['Calendar','Week of 21 July · 11 meetings',`<span class="bt">${ic('pu',12)} New event</span>`]];
 $('#nv').insertAdjacentHTML('beforeend',nav.map((n,i)=>`<a data-i="${i}">${ic(n[1],15)}${n[0]}${i==1?'<span class="bd">3</span>':''}</a>`).join(''));
 $('#bt').innerHTML=`<a>${ic('sl',15)}Settings</a><a>${ic('hp',15)}Support</a>`;
