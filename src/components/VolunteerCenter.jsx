@@ -14,7 +14,6 @@ import {
 import { supabase } from "../lib/supabase";
 import MagneticButton from "./MagneticButton";
 import { isTuntasAdminUser } from "../lib/adminAccess";
-import TaskDashboard from "./TaskDashboard";
 
 const PlushTile = React.lazy(() => import("./PlushTile"));
 
@@ -44,7 +43,7 @@ function statusLabel(status) {
   return labels[status] || status || "Belum ada status";
 }
 
-function AssignmentCard({ assignment, isAdmin, onCancel, onReview, onRefresh, onCheckTask }) {
+function AssignmentCard({ assignment, isAdmin, onCancel, onReview, onRefresh }) {
   const [files, setFiles] = useState([]);
   const [note, setNote] = useState("");
   const [reviewNote, setReviewNote] = useState("");
@@ -129,7 +128,6 @@ function AssignmentCard({ assignment, isAdmin, onCancel, onReview, onRefresh, on
         <span className={`assignment-status status-${assignment.status}`}>{statusLabel(assignment.status)}</span>
         <small>{formatDate(assignment.claimed_at || assignment.created_at)}</small>
       </div>
-      <button type="button" className="task-check-button" onClick={() => onCheckTask?.(report, assignment)}><ClipboardList size={15} /> Cek tugas</button>
       <div className="assignment-heading">
         <div>
           <span className="assignment-category">{report?.category || "Laporan warga"}</span>
@@ -248,7 +246,6 @@ export default function VolunteerCenter({ user, onAdminDataChanged, onProfileUpd
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [claimingReportId, setClaimingReportId] = useState(null);
-  const [selectedTask, setSelectedTask] = useState(null);
 
   const loadData = useCallback(async () => {
     if (!supabase || !user?.id) return;
@@ -541,7 +538,7 @@ export default function VolunteerCenter({ user, onAdminDataChanged, onProfileUpd
             <div className="volunteer-empty"><CheckCircle2 size={20} /> Belum ada bukti yang menunggu verifikasi.</div>
           ) : (
             <div className="assignment-list">
-              {assignments.map((assignment) => <AssignmentCard key={assignment.id} assignment={assignment} isAdmin onReview={reviewAssignment} onRefresh={loadData} onCheckTask={(report, taskAssignment) => setSelectedTask({ report, assignment: taskAssignment })} />)}
+              {assignments.map((assignment) => <AssignmentCard key={assignment.id} assignment={assignment} isAdmin onReview={reviewAssignment} onRefresh={loadData} />)}
             </div>
           )}
         </div>
@@ -565,7 +562,7 @@ export default function VolunteerCenter({ user, onAdminDataChanged, onProfileUpd
                     <div className="available-task-bottom">
                       <span>{report.priority || "Prioritas belum ditentukan"}</span>
                       <div className="available-task-venom">
-                        <button type="button" className="task-check-button" onClick={() => setSelectedTask({ report, assignment: null })}><ClipboardList size={15} /> Cek tugas</button>
+
                         <MagneticButton
                           label={claimingReportId === report.id ? "MEMPROSES..." : "AMBIL TUGAS"}
                           onClick={() => claimReport(report.id)}
@@ -599,14 +596,13 @@ export default function VolunteerCenter({ user, onAdminDataChanged, onProfileUpd
               <div className="volunteer-empty"><UserRound size={20} /> Kamu belum mengambil tugas.</div>
             ) : (
               <div className="assignment-list">
-                {assignments.map((assignment) => <AssignmentCard key={assignment.id} assignment={assignment} isAdmin={false} onCancel={cancelAssignment} onRefresh={loadData} onCheckTask={(report, taskAssignment) => setSelectedTask({ report, assignment: taskAssignment })} />)}
+                {assignments.map((assignment) => <AssignmentCard key={assignment.id} assignment={assignment} isAdmin={false} onCancel={cancelAssignment} onRefresh={loadData} />)}
               </div>
             )}
           </div>
         </div>
       ) : null}
 
-      {selectedTask && <TaskDashboard report={selectedTask.report} assignment={selectedTask.assignment} profile={profile} user={user} onClose={() => setSelectedTask(null)} />}
 
       {isAdmin && (
         <div className="admin-setup-hint">

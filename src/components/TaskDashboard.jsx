@@ -2,14 +2,15 @@ import React, { useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
-export default function TaskDashboard({ onClose, profile, user }) {
+export default function TaskDashboard({ onClose, profile, user, embedded = false }) {
   const iframeRef = useRef(null);
 
   useEffect(() => {
+    if (embedded) return undefined;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = previousOverflow; };
-  }, []);
+  }, [embedded]);
 
   const sendVolunteerProfile = useCallback(() => {
     const metadata = user?.user_metadata || {};
@@ -36,15 +37,27 @@ export default function TaskDashboard({ onClose, profile, user }) {
     sendVolunteerProfile();
   }, [sendVolunteerProfile]);
 
+  const dashboardFrame = (
+    <iframe
+      ref={iframeRef}
+      title="Dashboard Portofolio Relawan"
+      src={import.meta.env.BASE_URL + "Dashboard%20Keluhan%20Warga.html"}
+      onLoad={sendVolunteerProfile}
+      style={{ display: "block", width: "100%", height: "min(76vh, 820px)", minHeight: 560, border: 0, background: "#fff" }}
+    />
+  );
+
+  if (embedded) {
+    return (
+      <div className="volunteer-portfolio-dashboard-frame" style={{ width: "100%", overflow: "hidden", borderRadius: 16, background: "#fff" }}>
+        {dashboardFrame}
+      </div>
+    );
+  }
+
   return createPortal(
     <div style={{ position: "fixed", inset: 0, zIndex: 10000, background: "#fff" }}>
-      <iframe
-        ref={iframeRef}
-        title="Dashboard Keluhan Warga"
-        src={import.meta.env.BASE_URL + "Dashboard%20Keluhan%20Warga.html"}
-        onLoad={sendVolunteerProfile}
-        style={{ display: "block", width: "100%", height: "100%", border: 0 }}
-      />
+      {dashboardFrame}
       <button
         type="button"
         onClick={onClose}

@@ -29,6 +29,7 @@ import { isNetworkUnavailable } from "./lib/networkStatus";
 
 import AuthPanel from "./components/AuthPanel";
 import VolunteerCenter from "./components/VolunteerCenter";
+import TaskDashboard from "./components/TaskDashboard";
 import MobileHaptics from "./components/MobileHaptics";
 
 import { isTuntasAdminUser } from "./lib/adminAccess";
@@ -1193,7 +1194,7 @@ export default function App() {
             if (event.target === event.currentTarget) setVolunteerPortfolioOpen(false);
           }}
         >
-          <section className="volunteer-portfolio-dialog" role="dialog" aria-modal="true" aria-labelledby="volunteer-portfolio-title">
+          <section className="volunteer-portfolio-dialog volunteer-portfolio-dialog-dashboard" role="dialog" aria-modal="true" aria-labelledby="volunteer-portfolio-title">
             <button type="button" className="volunteer-portfolio-close" onClick={() => setVolunteerPortfolioOpen(false)} aria-label="Tutup portofolio"><X size={18} /></button>
             <div className="volunteer-portfolio-cover">
               <div className="volunteer-portfolio-identity">
@@ -1233,6 +1234,14 @@ export default function App() {
                   <span>{volunteerProfileEditing ? "Tutup edit" : volunteerProfile?.user_id ? "Edit profil" : "Buat profil"}</span>
                 </button>
               )}
+            </div>
+
+            <div className="volunteer-portfolio-dashboard-section">
+              <div className="volunteer-portfolio-history-heading">
+                <div><span>RUANG KERJA RELAWAN</span><h3>Dashboard portofolio</h3></div>
+                <small>Ringkasan aktivitas</small>
+              </div>
+              <TaskDashboard embedded profile={volunteerProfile} user={user} />
             </div>
 
             {volunteerPortfolioError && <div className="volunteer-portfolio-alert" role="alert">{volunteerPortfolioError}</div>}

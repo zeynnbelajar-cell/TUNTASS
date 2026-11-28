@@ -791,6 +791,7 @@ html {
   backdrop-filter: blur(17px);
   animation: volunteer-portfolio-fade .22s ease-out both;
 }
+.volunteer-portfolio-dialog.volunteer-portfolio-dialog-dashboard { width: min(1400px, 100%); max-height: min(94vh, 1100px); }
 .volunteer-portfolio-dialog {
   position: relative;
   width: min(790px, 100%);
@@ -907,7 +908,8 @@ html {
   .brand-profile-name { display: none; }
   .nav-tag { display: none; }
   .volunteer-portfolio-backdrop { padding: 10px; }
-  .volunteer-portfolio-dialog { max-height: 92vh; border-radius: 19px; }
+  .volunteer-portfolio-dialog.volunteer-portfolio-dialog-dashboard { width: min(1400px, 100%); max-height: min(94vh, 1100px); }
+.volunteer-portfolio-dialog { max-height: 92vh; border-radius: 19px; }
   .volunteer-portfolio-cover { align-items: flex-start; flex-direction: column; min-height: 0; padding: 55px 17px 18px; }
   .volunteer-portfolio-avatar-large { width: 68px; height: 68px; flex-basis: 68px; border-radius: 20px; font-size: 28px; }
   .volunteer-portfolio-identity { gap: 12px; }
@@ -919,7 +921,8 @@ html {
   .volunteer-portfolio-task-status { grid-column: 2; justify-self: start; }
 }
 @media(prefers-reduced-motion:reduce) {
-  .volunteer-portfolio-backdrop,.volunteer-portfolio-dialog { animation: none; }
+  .volunteer-portfolio-backdrop,.volunteer-portfolio-dialog.volunteer-portfolio-dialog-dashboard { width: min(1400px, 100%); max-height: min(94vh, 1100px); }
+.volunteer-portfolio-dialog { animation: none; }
 }
 
 
