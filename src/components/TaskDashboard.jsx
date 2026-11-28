@@ -13,7 +13,7 @@ export default function TaskDashboard({ onClose }) {
     <div style={{ position: "fixed", inset: 0, zIndex: 10000, background: "#fff" }}>
       <iframe
         title="Dashboard Keluhan Warga"
-        src="/Dashboard%20Keluhan%20Warga.html"
+        src={import.meta.env.BASE_URL + "Dashboard%20Keluhan%20Warga.html"}
         style={{ display: "block", width: "100%", height: "100%", border: 0 }}
       />
       <button
