@@ -1,19 +1,48 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
-export default function TaskDashboard({ onClose }) {
+export default function TaskDashboard({ onClose, profile, user }) {
+  const iframeRef = useRef(null);
+
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = previousOverflow; };
   }, []);
 
+  const sendVolunteerProfile = useCallback(() => {
+    const metadata = user?.user_metadata || {};
+    const fullName =
+      profile?.full_name?.trim() ||
+      metadata.full_name?.trim?.() ||
+      metadata.name?.trim?.() ||
+      metadata.display_name?.trim?.() ||
+      user?.email?.split("@")[0]?.replace(/[._-]+/g, " ") ||
+      "Relawan";
+
+    iframeRef.current?.contentWindow?.postMessage({
+      type: "TUNTAS_VOLUNTEER_PROFILE",
+      payload: {
+        fullName,
+        skills: profile?.skills?.trim() || "",
+        area: profile?.area?.trim() || "",
+        avatarUrl: profile?.avatar_url || metadata.avatar_url || metadata.picture || "",
+      },
+    }, window.location.origin);
+  }, [profile, user]);
+
+  useEffect(() => {
+    sendVolunteerProfile();
+  }, [sendVolunteerProfile]);
+
   return createPortal(
     <div style={{ position: "fixed", inset: 0, zIndex: 10000, background: "#fff" }}>
       <iframe
+        ref={iframeRef}
         title="Dashboard Keluhan Warga"
         src={import.meta.env.BASE_URL + "Dashboard%20Keluhan%20Warga.html"}
+        onLoad={sendVolunteerProfile}
         style={{ display: "block", width: "100%", height: "100%", border: 0 }}
       />
       <button

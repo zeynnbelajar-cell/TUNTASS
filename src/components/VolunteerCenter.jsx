@@ -606,7 +606,7 @@ export default function VolunteerCenter({ user, onAdminDataChanged, onProfileUpd
         </div>
       ) : null}
 
-      {selectedTask && <TaskDashboard report={selectedTask.report} assignment={selectedTask.assignment} onClose={() => setSelectedTask(null)} />}
+      {selectedTask && <TaskDashboard report={selectedTask.report} assignment={selectedTask.assignment} profile={profile} user={user} onClose={() => setSelectedTask(null)} />}
 
       {isAdmin && (
         <div className="admin-setup-hint">
